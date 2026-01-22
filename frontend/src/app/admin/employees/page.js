@@ -49,8 +49,8 @@ export default function AdminEmployeesPage() {
   const loadEmployees = async () => {
     try {
       setLoading(true);
-      const response = await adminAPI.getAllEmployees();
-      setEmployees(response.data.data);
+      const response = await adminAPI.getEmployees();
+      setEmployees(response.data);
     } catch (error) {
       console.error('Failed to load employees:', error);
     } finally {
