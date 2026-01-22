@@ -147,18 +147,18 @@ export default function AdminEmployeesPage() {
     }
   };
 
-  const handleDeactivate = async (id) => {
-    if (!confirm('Are you sure you want to deactivate this employee?')) {
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to permanently delete this employee? This action cannot be undone.')) {
       return;
     }
 
     try {
       await adminAPI.deactivateEmployee(id);
-      setSuccessMessage('Employee deactivated successfully!');
+      setSuccessMessage('Employee deleted successfully!');
       await loadEmployees();
     } catch (error) {
       setErrorMessage(
-        error.message || 'Failed to deactivate employee'
+        error.message || 'Failed to delete employee'
       );
     }
   };
@@ -430,9 +430,9 @@ export default function AdminEmployeesPage() {
                           <Button
                             variant="danger"
                             size="sm"
-                            onClick={() => handleDeactivate(employee.id)}
+                            onClick={() => handleDelete(employee.id)}
                           >
-                            Deactivate
+                            Delete
                           </Button>
                         )}
                       </td>

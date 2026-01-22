@@ -267,7 +267,7 @@ exports.deactivateEmployee = async (req, res, next) => {
     const { id } = req.params;
 
     const result = await db.query(
-      'UPDATE employees SET is_active = false WHERE id = $1 RETURNING *',
+      'DELETE FROM employees WHERE id = $1 RETURNING *',
       [id]
     );
 
@@ -276,9 +276,9 @@ exports.deactivateEmployee = async (req, res, next) => {
     }
 
     // Create audit log
-    await createAuditLog(req.user.id, 'EMPLOYEE_DEACTIVATED', 'employee', id, {}, req);
+    await createAuditLog(req.user.id, 'EMPLOYEE_DELETED', 'employee', id, {}, req);
 
-    sendSuccess(res, 'Employee deactivated successfully');
+    sendSuccess(res, 'Employee deleted successfully');
   } catch (error) {
     next(error);
   }
