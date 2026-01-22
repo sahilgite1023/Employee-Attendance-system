@@ -24,7 +24,6 @@ export default function AdminEmployeesPage() {
     phone: '',
     designation: '',
     department: '',
-    password: '',
     roleId: '3', // Default to employee role
   });
   const [errors, setErrors] = useState({});
@@ -73,10 +72,6 @@ export default function AdminEmployeesPage() {
 
     if (!formData.designation.trim()) {
       newErrors.designation = 'Designation is required';
-    }
-
-    if (!formData.password || formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
@@ -137,7 +132,6 @@ export default function AdminEmployeesPage() {
         phone: '',
         designation: '',
         department: '',
-        password: '',
         roleId: '3',
       });
       setShowCreateModal(false);
@@ -309,16 +303,6 @@ export default function AdminEmployeesPage() {
                     <option value="3">Employee</option>
                   </select>
                 </div>
-
-                <Input
-                  label="Password"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  error={errors.password}
-                  disabled={submitting}
-                />
               </div>
 
               <div className="flex space-x-4 pt-4">
@@ -341,7 +325,6 @@ export default function AdminEmployeesPage() {
                       phone: '',
                       designation: '',
                       department: '',
-                      password: '',
                       roleId: '3',
                     });
                     setErrors({});
