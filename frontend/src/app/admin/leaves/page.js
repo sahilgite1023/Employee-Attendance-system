@@ -38,8 +38,8 @@ export default function AdminLeavesPage() {
   const loadLeaveRequests = async () => {
     try {
       setLoading(true);
-      const response = await leaveAPI.getMyRequests({ status: filter });
-      setLeaveRequests(response.data.data);
+      const response = await leaveAPI.getAllRequests({ status: filter });
+      setLeaveRequests(response.data);
     } catch (error) {
       console.error('Failed to load leave requests:', error);
     } finally {
@@ -47,20 +47,20 @@ export default function AdminLeavesPage() {
     }
   };
 
-  const handleReview = async (id, status, rejectionReason = null) => {
+  const handleReview = async (id, status, reviewNotes = '') => {
     setSuccessMessage('');
     setErrorMessage('');
     setProcessingId(id);
 
     try {
-      await leaveAPI.review(id, status, rejectionReason);
+      await leaveAPI.review(id, { status, reviewNotes });
       setSuccessMessage(
         `Leave request ${status === 'approved' ? 'approved' : 'rejected'} successfully!`
       );
       await loadLeaveRequests();
     } catch (error) {
       setErrorMessage(
-        error.response?.data?.message || `Failed to ${status} leave request`
+        error.message || `Failed to ${status} leave request`
       );
     } finally {
       setProcessingId(null);
