@@ -150,9 +150,9 @@ export default function AdminEmployeesPage() {
 
   const filteredEmployees = employees.filter(
     (emp) =>
-      emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      emp.employee_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      emp.email.toLowerCase().includes(searchQuery.toLowerCase())
+      emp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.employee_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (loading) {
