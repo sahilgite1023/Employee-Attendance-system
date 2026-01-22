@@ -426,15 +426,13 @@ export default function AdminEmployeesPage() {
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
-                        {employee.is_active && (
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => handleDelete(employee.id)}
-                          >
-                            Delete
-                          </Button>
-                        )}
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDelete(employee.id)}
+                        >
+                          Delete
+                        </Button>
                       </td>
                     </tr>
                   ))
