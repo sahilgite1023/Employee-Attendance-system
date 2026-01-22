@@ -164,10 +164,14 @@ export default function AdminEmployeesPage() {
   };
 
   const filteredEmployees = employees.filter(
-    (emp) =>
-      emp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      emp.employee_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      emp.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    (emp) => {
+      const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim();
+      return (
+        fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        emp.employee_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        emp.email?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
   );
 
   if (loading) {
@@ -400,7 +404,7 @@ export default function AdminEmployeesPage() {
                         {employee.employee_id}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-900">
-                        {employee.name}
+                        {employee.first_name} {employee.last_name}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-600">
                         {employee.email}
@@ -412,7 +416,7 @@ export default function AdminEmployeesPage() {
                         {employee.department || '-'}
                       </td>
                       <td className="py-3 px-4">
-                        <Badge variant="info">{employee.role_name}</Badge>
+                        <Badge variant="info">{employee.role}</Badge>
                       </td>
                       <td className="py-3 px-4">
                         <Badge
