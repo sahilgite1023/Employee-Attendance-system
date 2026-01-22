@@ -130,8 +130,15 @@ const getGreeting = () => {
  * Generate employee ID
  */
 const generateEmployeeId = (lastId) => {
-  const num = lastId ? parseInt(lastId.replace('EMP', '')) + 1 : 1;
-  return `EMP${num.toString().padStart(3, '0')}`;
+  // Only parse if lastId starts with 'EMP'
+  if (lastId && lastId.startsWith('EMP')) {
+    const num = parseInt(lastId.replace('EMP', ''));
+    if (!isNaN(num)) {
+      return `EMP${(num + 1).toString().padStart(3, '0')}`;
+    }
+  }
+  // Default to EMP001 if no valid previous ID
+  return 'EMP001';
 };
 
 module.exports = {
