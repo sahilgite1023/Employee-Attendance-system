@@ -125,8 +125,12 @@ export default function AdminEmployeesPage() {
         roleId: formData.roleId,
       };
 
-      await adminAPI.createEmployee(employeeData);
-      setSuccessMessage('Employee created successfully!');
+      const response = await adminAPI.createEmployee(employeeData);
+      const { employee, temporaryPassword } = response.data;
+      
+      setSuccessMessage(
+        `Employee created successfully!\n\nEmployee ID: ${employee.employee_id}\nTemporary Password: ${temporaryPassword}\n\nPlease share these credentials with the employee.`
+      );
       setFormData({
         name: '',
         email: '',
@@ -208,7 +212,7 @@ export default function AdminEmployeesPage() {
         {/* Success/Error Messages */}
         {successMessage && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-700">{successMessage}</p>
+            <p className="text-sm text-green-700 whitespace-pre-line font-semibold">{successMessage}</p>
           </div>
         )}
 
