@@ -110,7 +110,22 @@ export default function AdminEmployeesPage() {
     setSubmitting(true);
 
     try {
-      await adminAPI.createEmployee(formData);
+      // Split name into firstName and lastName
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.slice(1).join(' ') || nameParts[0];
+
+      const employeeData = {
+        firstName,
+        lastName,
+        email: formData.email,
+        phone: formData.phone,
+        designation: formData.designation,
+        department: formData.department,
+        roleId: formData.roleId,
+      };
+
+      await adminAPI.createEmployee(employeeData);
       setSuccessMessage('Employee created successfully!');
       setFormData({
         name: '',
@@ -125,7 +140,7 @@ export default function AdminEmployeesPage() {
       await loadEmployees();
     } catch (error) {
       setErrorMessage(
-        error.response?.data?.message || 'Failed to create employee'
+        error.message || 'Failed to create employee'
       );
     } finally {
       setSubmitting(false);
