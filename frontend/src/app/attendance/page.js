@@ -51,6 +51,13 @@ export default function AttendancePage() {
       const response = await attendanceAPI.getHistory(params);
       const data = response.data;
 
+      console.log('📊 Attendance API Response:', data);
+      console.log('📊 Records:', data.records);
+      if (data.records && data.records.length > 0) {
+        console.log('📊 First record:', data.records[0]);
+        console.log('📊 Status of first record:', data.records[0].status);
+      }
+
       setAttendance(data.records || []);
       setPagination({
         ...pagination,
