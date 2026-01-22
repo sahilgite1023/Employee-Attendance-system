@@ -145,9 +145,9 @@ exports.createEmployee = async (req, res, next) => {
       return sendError(res, 'Email already exists', 400);
     }
 
-    // Generate employee ID
+    // Generate employee ID - only get EMP-formatted IDs
     const lastEmp = await db.query(
-      'SELECT employee_id FROM employees ORDER BY id DESC LIMIT 1'
+      "SELECT employee_id FROM employees WHERE employee_id LIKE 'EMP%' ORDER BY employee_id DESC LIMIT 1"
     );
     const newEmployeeId = generateEmployeeId(lastEmp.rows[0]?.employee_id);
 

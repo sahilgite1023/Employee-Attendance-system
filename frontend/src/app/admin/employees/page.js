@@ -153,12 +153,12 @@ export default function AdminEmployeesPage() {
     }
 
     try {
-      await adminAPI.updateEmployee(id, { isActive: false });
+      await adminAPI.deactivateEmployee(id);
       setSuccessMessage('Employee deactivated successfully!');
       await loadEmployees();
     } catch (error) {
       setErrorMessage(
-        error.response?.data?.message || 'Failed to deactivate employee'
+        error.message || 'Failed to deactivate employee'
       );
     }
   };
