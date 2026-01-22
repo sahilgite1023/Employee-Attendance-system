@@ -268,7 +268,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-gray-600">This Month</p>
                 <p className="text-3xl font-bold text-green-600 mt-2">
-                  {stats?.thisMonth?.present || 0}
+                  {stats?.present_days || 0}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Days Present</p>
               </div>
@@ -285,9 +285,9 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-gray-600">Late Arrivals</p>
                 <p className="text-3xl font-bold text-red-600 mt-2">
-                  {stats?.thisMonth?.late || 0}
+                  {stats?.late_days || 0}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">This Month</p>
+                <p className="text-xs text-gray-500 mt-1">Total</p>
               </div>
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
