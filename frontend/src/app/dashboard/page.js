@@ -46,7 +46,7 @@ export default function DashboardPage() {
         attendanceAPI.getStats(),
       ]);
 
-      setTodayAttendance(attendanceRes?.data || null);
+      setTodayAttendance(attendanceRes?.data?.attendance || null);
       setLeaveBalance(balanceRes?.data || null);
       setRecentAttendance(historyRes?.data?.records || []);
       setStats(statsRes?.data || null);
