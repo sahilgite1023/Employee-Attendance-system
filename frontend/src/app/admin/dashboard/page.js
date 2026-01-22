@@ -34,7 +34,7 @@ export default function AdminDashboardPage() {
     try {
       setLoading(true);
       const response = await adminAPI.getDashboard();
-      setStats(response.data.data);
+      setStats(response.data);
     } catch (error) {
       console.error('Failed to load dashboard:', error);
     } finally {
