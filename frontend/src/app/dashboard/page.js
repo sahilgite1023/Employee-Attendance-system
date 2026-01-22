@@ -402,7 +402,11 @@ export default function DashboardPage() {
                         {record.total_hours || '-'}
                       </td>
                       <td className="py-3 px-4">
-                        <Badge variant={record.status}>{record.status}</Badge>
+                        {record.status ? (
+                          <Badge variant={record.status}>{record.status}</Badge>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
+                        )}
                       </td>
                     </tr>
                   ))
