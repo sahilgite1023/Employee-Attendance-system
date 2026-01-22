@@ -1,9 +1,13 @@
 # API Documentation
 ## E-Attendance System REST API
 
-**Base URL:** `http://your-server:5000/api`
+**Production Base URL:** `https://employee-attendance-system-1y0t.onrender.com/api`
 
 **Version:** 1.0.0
+
+**Admin Credentials (for testing):**
+- Username: `sahilgite511`
+- Password: `sahilgite@2003`
 
 ---
 
@@ -733,24 +737,33 @@ When accessing from outside office network (if enabled):
 
 ## Mobile App Integration Notes
 
-1. **Token Management**: Store JWT token securely (e.g., secure storage)
+1. **Token Management**: Store JWT token securely (e.g., secure storage, AsyncStorage for React Native)
 2. **Token Expiry**: Handle 401 responses to refresh or re-login
 3. **Network Restriction**: Handle IP_RESTRICTED error gracefully
-4. **Date Formats**: All dates are in ISO 8601 format
+4. **Date Formats**: All dates are in ISO 8601 format (YYYY-MM-DD)
 5. **Pagination**: Use page and limit parameters for large datasets
+6. **Headers**: Include `Content-Type: application/json` for all POST/PUT requests
 
 ---
 
 ## Testing
 
-Base URLs:
-- **Development**: `http://localhost:5000/api`
-- **Production**: `https://your-server.com/api`
+**Production API:**
+- Base URL: `https://employee-attendance-system-1y0t.onrender.com/api`
+- Admin Login: `sahilgite511` / `sahilgite@2003`
 
-Test credentials (development only):
-- Admin: EMP001 / Admin@123
-- HR: EMP002 / Hr@123
-- Employee: EMP003 / Employee@123
+**Example Login Request:**
+```bash
+curl -X POST https://employee-attendance-system-1y0t.onrender.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"employeeId":"sahilgite511","password":"sahilgite@2003"}'
+```
+
+**Example Authenticated Request:**
+```bash
+curl -X GET https://employee-attendance-system-1y0t.onrender.com/api/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
 ---
 
