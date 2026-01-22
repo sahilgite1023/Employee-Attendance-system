@@ -27,7 +27,7 @@ export default function AdminLeavesPage() {
       return;
     }
 
-    if (user.role_name !== 'admin' && user.role_name !== 'hr') {
+    if (user.role !== 'admin' && user.role !== 'hr') {
       router.push('/dashboard');
       return;
     }
