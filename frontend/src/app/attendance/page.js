@@ -49,13 +49,13 @@ export default function AttendancePage() {
       };
 
       const response = await attendanceAPI.getHistory(params);
-      const data = response.data.data;
+      const data = response.data;
 
-      setAttendance(data.attendance);
+      setAttendance(data.records || []);
       setPagination({
         ...pagination,
-        total: data.total,
-        totalPages: data.totalPages,
+        total: data.pagination?.totalRecords || 0,
+        totalPages: data.pagination?.totalPages || 0,
       });
     } catch (error) {
       console.error('Failed to load attendance:', error);
@@ -67,7 +67,7 @@ export default function AttendancePage() {
   const loadStats = async () => {
     try {
       const response = await attendanceAPI.getStats();
-      setStats(response.data.data);
+      setStats(response.data);
     } catch (error) {
       console.error('Failed to load stats:', error);
     }
@@ -103,7 +103,7 @@ export default function AttendancePage() {
 
     const headers = ['Date', 'Check In', 'Check Out', 'Total Hours', 'Status'];
     const rows = attendance.map((record) => [
-      formatDate(record.date),
+      formatDate(record.attendance_date),
       formatTime(record.check_in_time),
       formatTime(record.check_out_time),
       record.total_hours || '-',
@@ -160,11 +160,11 @@ export default function AttendancePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card>
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">This Month</p>
+                <p className="text-sm text-gray-600 mb-2">Total Present</p>
                 <p className="text-3xl font-bold text-blue-600">
-                  {stats.thisMonth?.present || 0}
+                  {stats.present_days || 0}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Days Present</p>
+                <p className="text-xs text-gray-500 mt-1">Days</p>
               </div>
             </Card>
 
@@ -172,9 +172,9 @@ export default function AttendancePage() {
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-2">Late Arrivals</p>
                 <p className="text-3xl font-bold text-orange-600">
-                  {stats.thisMonth?.late || 0}
+                  {stats.late_days || 0}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">This Month</p>
+                <p className="text-xs text-gray-500 mt-1">Days</p>
               </div>
             </Card>
 
@@ -182,9 +182,9 @@ export default function AttendancePage() {
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-2">Absences</p>
                 <p className="text-3xl font-bold text-red-600">
-                  {stats.thisMonth?.absent || 0}
+                  {stats.absent_days || 0}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">This Month</p>
+                <p className="text-xs text-gray-500 mt-1">Days</p>
               </div>
             </Card>
 
@@ -192,9 +192,9 @@ export default function AttendancePage() {
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-2">Avg. Hours/Day</p>
                 <p className="text-3xl font-bold text-green-600">
-                  {stats.averageHoursPerDay || '0'}
+                  {stats.avg_hours || '0.00'}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">This Month</p>
+                <p className="text-xs text-gray-500 mt-1">Overall</p>
               </div>
             </Card>
           </div>
@@ -300,14 +300,14 @@ export default function AttendancePage() {
                           className="border-b border-gray-100 hover:bg-gray-50"
                         >
                           <td className="py-3 px-4 text-sm text-gray-900">
-                            {new Date(record.date).toLocaleDateString('en-US', {
+                            {new Date(record.attendance_date).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric',
                             })}
                           </td>
                           <td className="py-3 px-4 text-sm text-gray-600">
-                            {new Date(record.date).toLocaleDateString('en-US', {
+                            {new Date(record.attendance_date).toLocaleDateString('en-US', {
                               weekday: 'short',
                             })}
                           </td>
