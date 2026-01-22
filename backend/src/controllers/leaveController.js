@@ -154,7 +154,9 @@ exports.getAllLeaveRequests = async (req, res, next) => {
 
     let query = `
       SELECT lr.*, 
-             e.employee_id, e.first_name, e.last_name, e.department, e.designation,
+             e.employee_id, 
+             e.first_name || ' ' || e.last_name as employee_name,
+             e.first_name, e.last_name, e.department, e.designation,
              reviewer.first_name || ' ' || reviewer.last_name as reviewed_by_name
       FROM leave_requests lr
       JOIN employees e ON lr.employee_id = e.id
