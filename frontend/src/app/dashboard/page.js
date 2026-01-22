@@ -48,7 +48,7 @@ export default function DashboardPage() {
 
       setTodayAttendance(attendanceRes?.data || null);
       setLeaveBalance(balanceRes?.data || null);
-      setRecentAttendance(historyRes?.data?.attendance || []);
+      setRecentAttendance(historyRes?.data?.records || []);
       setStats(statsRes?.data || null);
     } catch (error) {
       console.error('Failed to load dashboard:', error);
@@ -386,7 +386,7 @@ export default function DashboardPage() {
                   recentAttendance.map((record) => (
                     <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4 text-sm text-gray-900">
-                        {new Date(record.date).toLocaleDateString('en-US', {
+                        {new Date(record.attendance_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
