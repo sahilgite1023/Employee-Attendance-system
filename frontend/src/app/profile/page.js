@@ -84,10 +84,10 @@ export default function ProfilePage() {
     setLoading(true);
 
     try {
-      await authAPI.changePassword(
-        passwordData.currentPassword,
-        passwordData.newPassword
-      );
+      await authAPI.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
       setSuccessMessage('Password changed successfully!');
       setPasswordData({
         currentPassword: '',
@@ -95,9 +95,12 @@ export default function ProfilePage() {
         confirmPassword: '',
       });
       setShowChangePassword(false);
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000);
     } catch (error) {
+      console.error('Change password error:', error);
       setErrorMessage(
-        error.response?.data?.message || 'Failed to change password'
+        error?.message || error?.response?.data?.message || 'Failed to change password. Please try again.'
       );
     } finally {
       setLoading(false);

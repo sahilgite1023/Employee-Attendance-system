@@ -62,8 +62,11 @@ export default function DashboardPage() {
       setCheckInLoading(true);
       await attendanceAPI.checkIn();
       await loadDashboardData();
+      alert('✓ Checked in successfully!');
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to check in');
+      console.error('Check-in error:', error);
+      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to check in. Please check your connection and try again.';
+      alert(errorMessage);
     } finally {
       setCheckInLoading(false);
     }
@@ -74,8 +77,11 @@ export default function DashboardPage() {
       setCheckOutLoading(true);
       await attendanceAPI.checkOut();
       await loadDashboardData();
+      alert('✓ Checked out successfully!');
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to check out');
+      console.error('Check-out error:', error);
+      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to check out. Please check your connection and try again.';
+      alert(errorMessage);
     } finally {
       setCheckOutLoading(false);
     }
