@@ -9,6 +9,7 @@ import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Input from '@/components/common/Input';
+import PhoneInput from '@/components/common/PhoneInput';
 import Loader from '@/components/common/Loader';
 
 export default function AdminEmployeesPage() {
@@ -294,10 +295,8 @@ export default function AdminEmployeesPage() {
                   disabled={submitting}
                 />
 
-                <Input
+                <PhoneInput
                   label="Phone"
-                  type="text"
-                  name="phone"
                   value={formData.phone}
                   onChange={handleChange}
                   disabled={submitting}
