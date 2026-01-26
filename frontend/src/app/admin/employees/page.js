@@ -31,6 +31,23 @@ export default function AdminEmployeesPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Department to Designation mapping
+  const departmentDesignations = {
+    'Engineering': ['Software Engineer', 'Senior Software Engineer', 'Lead Developer', 'Engineering Manager', 'System Architect', 'Tech Lead'],
+    'Development': ['Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'Senior Developer', 'Development Lead'],
+    'Quality Assurance': ['QA Engineer', 'Senior QA Engineer', 'QA Lead', 'Test Automation Engineer', 'QA Manager'],
+    'DevOps': ['DevOps Engineer', 'Senior DevOps Engineer', 'DevOps Lead', 'Site Reliability Engineer', 'Cloud Engineer'],
+    'Human Resources': ['HR Manager', 'HR Executive', 'HR Generalist', 'Talent Acquisition Specialist', 'HR Business Partner'],
+    'Finance': ['Accountant', 'Senior Accountant', 'Finance Manager', 'Financial Analyst', 'Controller'],
+    'Marketing': ['Marketing Manager', 'Marketing Executive', 'Digital Marketing Specialist', 'Content Strategist', 'SEO Specialist'],
+    'Sales': ['Sales Manager', 'Sales Executive', 'Account Manager', 'Business Development Manager', 'Sales Representative'],
+    'Operations': ['Operations Manager', 'Operations Executive', 'Operations Coordinator', 'Process Manager'],
+    'Customer Support': ['Support Engineer', 'Senior Support Engineer', 'Support Manager', 'Customer Success Manager'],
+    'Product Management': ['Product Manager', 'Senior Product Manager', 'Product Owner', 'Associate Product Manager'],
+    'Design': ['UI/UX Designer', 'Senior Designer', 'Design Lead', 'Graphic Designer', 'Product Designer'],
+    'Administration': ['Admin Manager', 'Administrative Assistant', 'Office Manager', 'Executive Assistant'],
+  };
+
   useEffect(() => {
     if (!user) {
       router.push('/login');
@@ -80,10 +97,28 @@ export default function AdminEmployeesPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    
+    // If department changes, reset designation
+    if (name === 'department') {
+      setFormData((prev) => ({
+        ...prev,
+        department: value,
+        designation: '', // Reset designation when department changes
+      }));
+      // Clear designation error if it exists
+      if (errors.designation) {
+        setErrors((prev) => ({
+          ...prev,
+          designation: '',
+        }));
+      }
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+    
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -268,24 +303,60 @@ export default function AdminEmployeesPage() {
                   disabled={submitting}
                 />
 
-                <Input
-                  label="Designation"
-                  type="text"
-                  name="designation"
-                  value={formData.designation}
-                  onChange={handleChange}
-                  error={errors.designation}
-                  disabled={submitting}
-                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Department
+                  </label>
+                  <select
+                    name="department"
+                    value={formData.department}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={submitting}
+                  >
+                    <option value="">Select Department</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Development">Development</option>
+                    <option value="Quality Assurance">Quality Assurance</option>
+                    <option value="DevOps">DevOps</option>
+                    <option value="Human Resources">Human Resources</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Operations">Operations</option>
+                    <option value="Customer Support">Customer Support</option>
+                    <option value="Product Management">Product Management</option>
+                    <option value="Design">Design</option>
+                    <option value="Administration">Administration</option>
+                  </select>
+                </div>
 
-                <Input
-                  label="Department"
-                  type="text"
-                  name="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  disabled={submitting}
-                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Designation
+                  </label>
+                  <select
+                    name="designation"
+                    value={formData.designation}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      errors.designation ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    disabled={submitting || !formData.department}
+                  >
+                    <option value="">
+                      {formData.department ? 'Select Designation' : 'Select Department First'}
+                    </option>
+                    {formData.department && departmentDesignations[formData.department]?.map((designation) => (
+                      <option key={designation} value={designation}>
+                        {designation}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.designation && (
+                    <p className="mt-1 text-sm text-red-500">{errors.designation}</p>
+                  )}
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
