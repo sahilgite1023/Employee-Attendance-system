@@ -5,9 +5,12 @@ const { validate } = require('../utils/response');
 const {
   getDashboardStats,
   getAllEmployees,
+  getEmployeeById,
   createEmployee,
   updateEmployee,
   deactivateEmployee,
+  activateEmployee,
+  softDeactivateEmployee,
   getAttendanceReport,
   getLeaveReport,
 } = require('../controllers/adminController');
@@ -30,6 +33,13 @@ router.get('/dashboard', getDashboardStats);
  * @access  Private (Admin/HR)
  */
 router.get('/employees', getAllEmployees);
+
+/**
+ * @route   GET /api/admin/employees/:id
+ * @desc    Get employee by ID
+ * @access  Private (Admin/HR)
+ */
+router.get('/employees/:id', getEmployeeById);
 
 /**
  * @route   POST /api/admin/employees
@@ -63,6 +73,20 @@ router.put('/employees/:id', updateEmployee);
  * @access  Private (Admin)
  */
 router.delete('/employees/:id', authorize('admin'), deactivateEmployee);
+
+/**
+ * @route   POST /api/admin/employees/:id/activate
+ * @desc    Activate employee
+ * @access  Private (Admin/HR)
+ */
+router.post('/employees/:id/activate', activateEmployee);
+
+/**
+ * @route   POST /api/admin/employees/:id/deactivate
+ * @desc    Soft deactivate employee
+ * @access  Private (Admin/HR)
+ */
+router.post('/employees/:id/deactivate', softDeactivateEmployee);
 
 /**
  * @route   GET /api/admin/reports/attendance

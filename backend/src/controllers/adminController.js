@@ -116,6 +116,38 @@ exports.getAllEmployees = async (req, res, next) => {
 };
 
 /**
+ * @route   GET /api/admin/employees/:id
+ * @desc    Get employee by ID
+ * @access  Private (Admin/HR)
+ */
+exports.getEmployeeById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const result = await db.query(
+      `SELECT e.id, e.employee_id, e.email, e.first_name, e.last_name, e.phone,
+              e.designation, e.department, e.date_of_joining, e.is_active,
+              e.paid_leaves_balance, e.unpaid_leaves_taken,
+              r.name as role,
+              manager.first_name || ' ' || manager.last_name as reporting_manager_name
+       FROM employees e
+       JOIN roles r ON e.role_id = r.id
+       LEFT JOIN employees manager ON e.reporting_manager_id = manager.id
+       WHERE e.id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return sendError(res, 'Employee not found', 404);
+    }
+
+    sendSuccess(res, 'Employee retrieved', { employee: result.rows[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @route   POST /api/admin/employees
  * @desc    Create new employee
  * @access  Private (Admin/HR)
@@ -259,7 +291,7 @@ exports.updateEmployee = async (req, res, next) => {
 
 /**
  * @route   DELETE /api/admin/employees/:id
- * @desc    Deactivate employee
+ * @desc    Delete employee permanently
  * @access  Private (Admin)
  */
 exports.deactivateEmployee = async (req, res, next) => {
@@ -279,6 +311,60 @@ exports.deactivateEmployee = async (req, res, next) => {
     await createAuditLog(req.user.id, 'EMPLOYEE_DELETED', 'employee', id, {}, req);
 
     sendSuccess(res, 'Employee deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @route   POST /api/admin/employees/:id/activate
+ * @desc    Activate employee
+ * @access  Private (Admin/HR)
+ */
+exports.activateEmployee = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const result = await db.query(
+      'UPDATE employees SET is_active = true WHERE id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return sendError(res, 'Employee not found', 404);
+    }
+
+    // Create audit log
+    await createAuditLog(req.user.id, 'EMPLOYEE_ACTIVATED', 'employee', id, {}, req);
+
+    sendSuccess(res, 'Employee activated successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @route   POST /api/admin/employees/:id/deactivate
+ * @desc    Soft deactivate employee (set is_active to false)
+ * @access  Private (Admin/HR)
+ */
+exports.softDeactivateEmployee = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const result = await db.query(
+      'UPDATE employees SET is_active = false WHERE id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return sendError(res, 'Employee not found', 404);
+    }
+
+    // Create audit log
+    await createAuditLog(req.user.id, 'EMPLOYEE_DEACTIVATED', 'employee', id, {}, req);
+
+    sendSuccess(res, 'Employee deactivated successfully');
   } catch (error) {
     next(error);
   }
