@@ -273,7 +273,12 @@ exports.getAllAttendance = async (req, res, next) => {
     const { date, status, department, page = 1, limit = 50 } = req.query;
 
     let query = `
-      SELECT a.*, e.employee_id, e.first_name, e.last_name, e.department, e.designation
+      SELECT a.*, 
+             e.employee_id AS employee_code, 
+             e.first_name, 
+             e.last_name, 
+             e.department, 
+             e.designation
       FROM attendance a
       JOIN employees e ON a.employee_id = e.id
       WHERE 1=1

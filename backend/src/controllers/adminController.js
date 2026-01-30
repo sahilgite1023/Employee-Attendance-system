@@ -280,10 +280,19 @@ exports.updateEmployee = async (req, res, next) => {
       return sendError(res, 'Employee not found', 404);
     }
 
+    // Get the updated employee with role name
+    const employeeWithRole = await db.query(
+      `SELECT e.*, r.name as role 
+       FROM employees e 
+       JOIN roles r ON e.role_id = r.id 
+       WHERE e.id = $1`,
+      [id]
+    );
+
     // Create audit log
     await createAuditLog(req.user.id, 'EMPLOYEE_UPDATED', 'employee', id, updates, req);
 
-    sendSuccess(res, 'Employee updated successfully', result.rows[0]);
+    sendSuccess(res, 'Employee updated successfully', employeeWithRole.rows[0]);
   } catch (error) {
     next(error);
   }

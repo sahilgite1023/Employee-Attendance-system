@@ -21,15 +21,19 @@ exports.applyLeave = async (req, res, next) => {
 
     // Check if end date is after start date
     if (new Date(endDate) < new Date(startDate)) {
-      return sendError(res, 'End date must be after start date', 400);
+      return sendError(res, 'End date must be after or same as start date', 400);
     }
 
-    // Calculate total days (business days)
-    const totalDays = calculateBusinessDays(startDate, endDate);
+    // Calculate total calendar days
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const totalCalendarDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-    if (totalDays === 0) {
-      return sendError(res, 'Leave period must include at least one working day', 400);
-    }
+    // Calculate business days for leave balance calculation
+    const totalBusinessDays = calculateBusinessDays(startDate, endDate);
+
+    // Allow leave application even if no business days (e.g., weekend-only leaves)
+    // But use business days for balance calculation
 
     // Get employee's leave balance
     const empResult = await db.query(
@@ -40,8 +44,12 @@ exports.applyLeave = async (req, res, next) => {
     const employee = empResult.rows[0];
 
     // Determine leave type (paid or unpaid)
+    // Only deduct from paid leave balance for business days
     let leaveType = 'paid';
-    if (employee.paid_leaves_balance < totalDays) {
+    if (totalBusinessDays > 0 && employee.paid_leaves_balance < totalBusinessDays) {
+      leaveType = 'unpaid';
+    } else if (totalBusinessDays === 0) {
+      // Weekend-only leaves don't count against paid balance
       leaveType = 'unpaid';
     }
 
@@ -51,7 +59,7 @@ exports.applyLeave = async (req, res, next) => {
        (employee_id, leave_type, start_date, end_date, total_days, reason, status)
        VALUES ($1, $2, $3, $4, $5, $6, 'pending')
        RETURNING *`,
-      [employeeId, leaveType, startDate, endDate, totalDays, reason]
+      [employeeId, leaveType, startDate, endDate, totalBusinessDays, reason]
     );
 
     // Create audit log
@@ -60,7 +68,7 @@ exports.applyLeave = async (req, res, next) => {
       'LEAVE_APPLIED',
       'leave',
       result.rows[0].id,
-      { startDate, endDate, totalDays, leaveType },
+      { startDate, endDate, totalDays: totalBusinessDays, leaveType },
       req
     );
 
