@@ -22,6 +22,7 @@ CREATE TABLE employees (
     employee_id VARCHAR(20) UNIQUE NOT NULL, -- EMP001, EMP002, etc.
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    temporary_password VARCHAR(255),
     
     -- Personal Information
     first_name VARCHAR(100) NOT NULL,

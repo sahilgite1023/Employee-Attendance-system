@@ -127,6 +127,7 @@ exports.getEmployeeById = async (req, res, next) => {
     const result = await db.query(
       `SELECT e.id, e.employee_id, e.email, e.first_name, e.last_name, e.phone,
               e.designation, e.department, e.date_of_joining, e.is_active,
+              e.temporary_password,
               e.paid_leaves_balance, e.unpaid_leaves_taken,
               r.name as role,
               manager.first_name || ' ' || manager.last_name as reporting_manager_name
@@ -163,7 +164,7 @@ exports.createEmployee = async (req, res, next) => {
       department,
       roleId,
       reportingManagerId,
-      dateOfJoining,
+      date_of_joining,
     } = req.body;
 
     // Validation
@@ -189,16 +190,17 @@ exports.createEmployee = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(tempPassword, salt);
 
     // Insert employee
-    const result = await db.query(
-      `INSERT INTO employees 
-       (employee_id, email, password_hash, first_name, last_name, phone, 
-        designation, department, role_id, reporting_manager_id, date_of_joining, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true)
-       RETURNING *`,
+      const result = await db.query(
+        `INSERT INTO employees 
+         (employee_id, email, password_hash, temporary_password, first_name, last_name, phone, 
+          designation, department, role_id, reporting_manager_id, date_of_joining, is_active)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, true)
+         RETURNING *`,
       [
         newEmployeeId,
         email,
         hashedPassword,
+          tempPassword,
         firstName,
         lastName,
         phone || null,
@@ -206,11 +208,27 @@ exports.createEmployee = async (req, res, next) => {
         department,
         roleId,
         reportingManagerId || null,
-        dateOfJoining || new Date(),
+          date_of_joining || new Date(),
       ]
     );
 
-    const newEmployee = result.rows[0];
+    const createdEmployee = result.rows[0];
+
+    const employeeWithRole = await db.query(
+      `SELECT e.id, e.employee_id, e.email, e.first_name, e.last_name, e.phone,
+              e.designation, e.department, e.date_of_joining, e.is_active,
+              e.temporary_password,
+              e.paid_leaves_balance, e.unpaid_leaves_taken,
+              r.name as role,
+              manager.first_name || ' ' || manager.last_name as reporting_manager_name
+       FROM employees e
+       JOIN roles r ON e.role_id = r.id
+       LEFT JOIN employees manager ON e.reporting_manager_id = manager.id
+       WHERE e.id = $1`,
+      [createdEmployee.id]
+    );
+
+    const newEmployee = employeeWithRole.rows[0];
 
     // Send welcome email (async, don't wait)
     sendWelcomeEmail(email, `${firstName} ${lastName}`, newEmployeeId, tempPassword).catch(
@@ -248,6 +266,10 @@ exports.updateEmployee = async (req, res, next) => {
   try {
     const { id } = req.params;
     const updates = req.body;
+
+    if (updates.date_of_joining === '') {
+      updates.date_of_joining = null;
+    }
 
     // Don't allow updating password, email, employee_id through this endpoint
     delete updates.password_hash;
