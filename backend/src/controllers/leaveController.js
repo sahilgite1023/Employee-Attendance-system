@@ -29,11 +29,12 @@ exports.applyLeave = async (req, res, next) => {
     const end = new Date(endDate);
     const totalCalendarDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-    // Calculate business days for leave balance calculation
+    // Calculate business days for leave balance calculation only
     const totalBusinessDays = calculateBusinessDays(startDate, endDate);
 
-    // Allow leave application even if no business days (e.g., weekend-only leaves)
-    // But use business days for balance calculation
+    // Note: We store totalCalendarDays in the database (for display purposes)
+    // but use totalBusinessDays for leave balance calculations
+    // This allows weekend-only leaves to be recorded without violating DB constraints
 
     // Get employee's leave balance
     const empResult = await db.query(
@@ -59,7 +60,7 @@ exports.applyLeave = async (req, res, next) => {
        (employee_id, leave_type, start_date, end_date, total_days, reason, status)
        VALUES ($1, $2, $3, $4, $5, $6, 'pending')
        RETURNING *`,
-      [employeeId, leaveType, startDate, endDate, totalBusinessDays, reason]
+      [employeeId, leaveType, startDate, endDate, totalCalendarDays, reason]
     );
 
     // Create audit log
@@ -68,7 +69,13 @@ exports.applyLeave = async (req, res, next) => {
       'LEAVE_APPLIED',
       'leave',
       result.rows[0].id,
-      { startDate, endDate, totalDays: totalBusinessDays, leaveType },
+      { 
+        startDate, 
+        endDate, 
+        totalDays: totalCalendarDays, 
+        businessDays: totalBusinessDays,
+        leaveType 
+      },
       req
     );
 
@@ -248,17 +255,20 @@ exports.reviewLeaveRequest = async (req, res, next) => {
         [status, reviewerId, remarks || null, id]
       );
 
-      // If approved, update employee's leave balance
+      // If approved, update employee's leave balance based on business days
       if (status === 'approved') {
-        if (leave.leave_type === 'paid') {
+        // Calculate business days for leave balance deduction
+        const businessDays = calculateBusinessDays(leave.start_date, leave.end_date);
+        
+        if (leave.leave_type === 'paid' && businessDays > 0) {
           await db.query(
             'UPDATE employees SET paid_leaves_balance = paid_leaves_balance - $1 WHERE id = $2',
-            [leave.total_days, leave.employee_id]
+            [businessDays, leave.employee_id]
           );
-        } else {
+        } else if (businessDays > 0) {
           await db.query(
             'UPDATE employees SET unpaid_leaves_taken = unpaid_leaves_taken + $1 WHERE id = $2',
-            [leave.total_days, leave.employee_id]
+            [businessDays, leave.employee_id]
           );
         }
 
