@@ -184,11 +184,11 @@ export default function DashboardPage() {
                       Check-out: <span className="font-medium">{formatTime(todayAttendance.check_out_time)}</span>
                     </p>
                   )}
-                  {todayAttendance.total_hours && (
+                  {todayAttendance.total_hours ? (
                     <p className="text-sm text-gray-600">
                       Total Hours: <span className="font-medium">{todayAttendance.total_hours}</span>
                     </p>
-                  )}
+                  ) : null}
                 </div>
               )}
               {!hasCheckedIn && (

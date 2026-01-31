@@ -309,7 +309,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Pending Leave Requests */}
-        {stats?.pendingLeaveRequests && stats.pendingLeaveRequests.length > 0 && (
+        {stats?.pendingLeaveRequests && stats.pendingLeaveRequests.length > 0 ? (
           <Card className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-gray-900">
@@ -370,10 +370,10 @@ export default function AdminDashboardPage() {
               </table>
             </div>
           </Card>
-        )}
+        ) : null}
 
         {/* Today's Attendance Summary */}
-        {stats?.todayAttendance && stats.todayAttendance.length > 0 && (
+        {stats?.todayAttendance && stats.todayAttendance.length > 0 ? (
           <Card>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Today's Attendance
@@ -434,7 +434,7 @@ export default function AdminDashboardPage() {
               </table>
             </div>
           </Card>
-        )}
+        ) : null}
       </main>
     </div>
   );
