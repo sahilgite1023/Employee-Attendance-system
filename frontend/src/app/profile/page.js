@@ -198,7 +198,7 @@ export default function ProfilePage() {
             {/* Profile Details */}
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                {user.name}
+                {user.first_name} {user.last_name}
               </h2>
               <p className="text-sm text-gray-600 mb-4">{user.designation}</p>
 
@@ -238,7 +238,7 @@ export default function ProfilePage() {
                     Role
                   </label>
                   <p className="text-sm text-gray-900 mt-1 capitalize">
-                    {user.role_name}
+                    {user.role}
                   </p>
                 </div>
                 <div>

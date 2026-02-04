@@ -62,11 +62,11 @@ export default function AdminDashboardPage() {
                   Admin Dashboard
                 </h1>
                 <Badge variant="danger" className="uppercase text-xs font-bold">
-                  {user?.role_name || 'ADMIN'}
+                  {user?.role?.toUpperCase() || 'ADMIN'}
                 </Badge>
               </div>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                Welcome back, {user?.name} - {user?.employee_id}
+                Welcome back, {user?.first_name} {user?.last_name} - {user?.employee_id}
               </p>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
@@ -87,8 +87,11 @@ export default function AdminDashboardPage() {
             <Link href="/admin/employees">
               <Button variant="outline" size="sm" className="text-xs sm:text-sm">👥 <span className="hidden sm:inline">Employees</span></Button>
             </Link>
+            <Link href="/admin/attendance">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📋 <span className="hidden sm:inline">Attendance</span></Button>
+            </Link>
             <Link href="/admin/leaves">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📝 <span className="hidden sm:inline">Leaves</span></Button>
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">🌴 <span className="hidden sm:inline">Leaves</span></Button>
             </Link>
             <Link href="/admin/reports">
               <Button variant="outline" size="sm" className="text-xs sm:text-sm">📊 <span className="hidden sm:inline">Reports</span></Button>
@@ -218,7 +221,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Link href="/admin/employees">
             <Card className="cursor-pointer hover:shadow-lg transition-shadow">
               <div className="flex items-center space-x-4">
@@ -271,6 +274,34 @@ export default function AdminDashboardPage() {
                   <h3 className="font-semibold text-gray-900">Leave Approvals</h3>
                   <p className="text-sm text-gray-600">
                     Review pending leave requests
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </Link>
+
+          <Link href="/admin/attendance">
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-orange-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">Attendance Management</h3>
+                  <p className="text-sm text-gray-600">
+                    View and manage daily attendance
                   </p>
                 </div>
               </div>

@@ -28,7 +28,7 @@ export default function DashboardPage() {
       return;
     }
 
-    if (user.role_name === 'admin') {
+    if (user.role === 'admin') {
       router.push('/admin/dashboard');
       return;
     }
@@ -111,10 +111,10 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {getGreeting()}, {user?.name}!
+                  {getGreeting()}, {user?.first_name}!
                 </h1>
                 <Badge variant="success" className="uppercase text-xs font-bold px-2 sm:px-3 py-1">
-                  {user?.role_name || 'EMPLOYEE'}
+                  {user?.role?.toUpperCase() || 'EMPLOYEE'}
                 </Badge>
               </div>
               <p className="text-xs sm:text-sm text-gray-600 mt-1">

@@ -108,6 +108,25 @@ export default function AdminLeavesPage() {
               </Button>
             </div>
           </div>
+          
+          {/* Admin Navigation Bar */}
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-4">
+            <Link href="/admin/dashboard">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📊 Dashboard</Button>
+            </Link>
+            <Link href="/admin/employees">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">👥 Employees</Button>
+            </Link>
+            <Link href="/admin/attendance">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📋 Attendance</Button>
+            </Link>
+            <Link href="/admin/leaves">
+              <Button variant="primary" size="sm" className="text-xs sm:text-sm">🌴 Leaves</Button>
+            </Link>
+            <Link href="/admin/reports">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📊 Reports</Button>
+            </Link>
+          </div>
         </div>
       </header>
 

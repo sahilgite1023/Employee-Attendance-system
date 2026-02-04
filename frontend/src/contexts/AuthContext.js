@@ -47,12 +47,16 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = async (employeeId, password) => {
+  const login = async (employeeId, password, rememberMe = false) => {
     const response = await authAPI.login({ employeeId, password });
     const { token, user } = response.data;
 
-    Cookies.set('token', token, { expires: 7 });
-    Cookies.set('user', JSON.stringify(user), { expires: 7 });
+    // Set cookie expiration based on "Remember me" checkbox
+    // If "Remember me" is checked: 30 days, otherwise: 1 day (session-like)
+    const cookieExpiration = rememberMe ? 30 : 1;
+
+    Cookies.set('token', token, { expires: cookieExpiration });
+    Cookies.set('user', JSON.stringify(user), { expires: cookieExpiration });
     setUser(user);
 
     // Redirect based on role
@@ -74,6 +78,8 @@ export function AuthProvider({ children }) {
       Cookies.remove('token');
       Cookies.remove('user');
       setUser(null);
+      // Note: We don't remove 'rememberedEmployeeId' and 'rememberMe' from localStorage
+      // so that the employee ID can be auto-filled on next login if they want
       router.push('/login');
     }
   };

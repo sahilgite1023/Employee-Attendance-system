@@ -39,8 +39,8 @@ export default function AdminReportsPage() {
 
   const loadEmployees = async () => {
     try {
-      const response = await adminAPI.getAllEmployees();
-      setEmployees(response.data.data);
+      const response = await adminAPI.getEmployees();
+      setEmployees(response.data || []);
     } catch (error) {
       console.error('Failed to load employees:', error);
     }
@@ -63,7 +63,7 @@ export default function AdminReportsPage() {
     setLoading(true);
     try {
       const response = await adminAPI.getAttendanceReport(filters);
-      setReport(response.data.data);
+      setReport(response.data || []);
     } catch (error) {
       console.error('Failed to generate report:', error);
       alert('Failed to generate report');
@@ -91,13 +91,13 @@ export default function AdminReportsPage() {
 
     const rows = report.map((record) => [
       record.employee_id,
-      record.employee_name,
+      `${record.first_name} ${record.last_name}`,
       record.total_days,
-      record.present_days,
-      record.absent_days,
-      record.late_days,
-      record.on_leave_days,
-      record.avg_hours_worked || '0',
+      record.present,
+      record.absent,
+      record.late,
+      record.on_leave_days || 0,
+      record.avg_hours || '0',
     ]);
 
     const csvContent = [
@@ -131,6 +131,25 @@ export default function AdminReportsPage() {
                 Logout
               </Button>
             </div>
+          </div>
+          
+          {/* Admin Navigation Bar */}
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-4">
+            <Link href="/admin/dashboard">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📊 Dashboard</Button>
+            </Link>
+            <Link href="/admin/employees">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">👥 Employees</Button>
+            </Link>
+            <Link href="/admin/attendance">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📋 Attendance</Button>
+            </Link>
+            <Link href="/admin/leaves">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">🌴 Leaves</Button>
+            </Link>
+            <Link href="/admin/reports">
+              <Button variant="primary" size="sm" className="text-xs sm:text-sm">📊 Reports</Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -172,7 +191,7 @@ export default function AdminReportsPage() {
                 <option value="">All Employees</option>
                 {employees.map((emp) => (
                   <option key={emp.id} value={emp.employee_id}>
-                    {emp.employee_id} - {emp.name}
+                    {emp.employee_id} - {emp.first_name} {emp.last_name}
                   </option>
                 ))}
               </select>
@@ -249,7 +268,7 @@ export default function AdminReportsPage() {
                     const attendancePercentage =
                       record.total_days > 0
                         ? Math.round(
-                            (record.present_days / record.total_days) * 100
+                            (record.present / record.total_days) * 100
                           )
                         : 0;
 
@@ -262,25 +281,25 @@ export default function AdminReportsPage() {
                           {record.employee_id}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-900">
-                          {record.employee_name}
+                          {record.first_name} {record.last_name}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-900 text-center">
                           {record.total_days}
                         </td>
                         <td className="py-3 px-4 text-sm text-green-600 text-center font-medium">
-                          {record.present_days}
+                          {record.present}
                         </td>
                         <td className="py-3 px-4 text-sm text-red-600 text-center font-medium">
-                          {record.absent_days}
+                          {record.absent}
                         </td>
                         <td className="py-3 px-4 text-sm text-orange-600 text-center font-medium">
-                          {record.late_days}
+                          {record.late}
                         </td>
                         <td className="py-3 px-4 text-sm text-blue-600 text-center font-medium">
-                          {record.on_leave_days}
+                          {record.on_leave_days || 0}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-900 text-center">
-                          {record.avg_hours_worked || '0'}
+                          {record.avg_hours || '0'}
                         </td>
                         <td className="py-3 px-4 text-center">
                           <span
@@ -322,7 +341,7 @@ export default function AdminReportsPage() {
                         (sum, r) =>
                           sum +
                           (r.total_days > 0
-                            ? (r.present_days / r.total_days) * 100
+                            ? (r.present / r.total_days) * 100
                             : 0),
                         0
                       ) / report.length
@@ -333,13 +352,13 @@ export default function AdminReportsPage() {
                 <div className="bg-orange-50 rounded-lg p-4">
                   <p className="text-sm text-gray-600">Total Late</p>
                   <p className="text-2xl font-bold text-orange-600 mt-1">
-                    {report.reduce((sum, r) => sum + r.late_days, 0)}
+                    {report.reduce((sum, r) => sum + r.late, 0)}
                   </p>
                 </div>
                 <div className="bg-red-50 rounded-lg p-4">
                   <p className="text-sm text-gray-600">Total Absent</p>
                   <p className="text-2xl font-bold text-red-600 mt-1">
-                    {report.reduce((sum, r) => sum + r.absent_days, 0)}
+                    {report.reduce((sum, r) => sum + r.absent, 0)}
                   </p>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,9 +14,24 @@ export default function LoginPage() {
     employeeId: '',
     password: '',
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+
+  // Load saved credentials if "Remember me" was checked previously
+  useEffect(() => {
+    const savedEmployeeId = localStorage.getItem('rememberedEmployeeId');
+    const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
+    
+    if (savedEmployeeId && savedRememberMe) {
+      setFormData(prev => ({
+        ...prev,
+        employeeId: savedEmployeeId
+      }));
+      setRememberMe(true);
+    }
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -62,7 +77,16 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(formData.employeeId, formData.password);
+      // Save or remove employee ID based on "Remember me" checkbox
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmployeeId', formData.employeeId);
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        localStorage.removeItem('rememberedEmployeeId');
+        localStorage.removeItem('rememberMe');
+      }
+
+      await login(formData.employeeId, formData.password, rememberMe);
       // Login function in AuthContext handles redirect based on role
     } catch (error) {
       setApiError(
@@ -145,19 +169,24 @@ export default function LoginPage() {
           />
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-sm text-gray-700"
-              >
-                Remember me
-              </label>
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  disabled={loading}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                />
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-700 cursor-pointer"
+                >
+                  Remember me
+                </label>
+              </div>
             </div>
 
             <Link

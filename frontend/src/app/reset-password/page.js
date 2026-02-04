@@ -80,7 +80,10 @@ function ResetPasswordContent() {
     setLoading(true);
 
     try {
-      await authAPI.resetPassword(token, formData.password);
+      await authAPI.resetPassword({
+        token: token,
+        newPassword: formData.password
+      });
       setSuccess(true);
       // Redirect to login after 3 seconds
       setTimeout(() => {
@@ -88,7 +91,7 @@ function ResetPasswordContent() {
       }, 3000);
     } catch (error) {
       setApiError(
-        error.response?.data?.message ||
+        error?.message ||
         'Failed to reset password. The link may have expired.'
       );
     } finally {
