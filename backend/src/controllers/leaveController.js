@@ -160,8 +160,8 @@ exports.getLeaveBalance = async (req, res, next) => {
 
 /**
  * @route   GET /api/leave/all-requests
- * @desc    Get all leave requests (Admin/HR)
- * @access  Private (Admin/HR)
+ * @desc    Get all leave requests (Admin)
+ * @access  Private (Admin)
  */
 exports.getAllLeaveRequests = async (req, res, next) => {
   try {
@@ -211,7 +211,7 @@ exports.getAllLeaveRequests = async (req, res, next) => {
 /**
  * @route   PUT /api/leave/:id/review
  * @desc    Approve or reject leave request
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.reviewLeaveRequest = async (req, res, next) => {
   try {

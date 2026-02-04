@@ -48,8 +48,8 @@ router.get('/stats', protect, getAttendanceStats);
 /**
  * @route   GET /api/attendance/all
  * @desc    Get all employees' attendance (Admin only)
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
-router.get('/all', protect, authorize('admin', 'hr'), getAllAttendance);
+router.get('/all', protect, authorize('admin'), getAllAttendance);
 
 module.exports = router;

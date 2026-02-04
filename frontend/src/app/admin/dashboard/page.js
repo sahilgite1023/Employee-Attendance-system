@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    if (user.role !== 'admin' && user.role !== 'hr') {
+    if (user.role !== 'admin') {
       router.push('/dashboard');
       return;
     }

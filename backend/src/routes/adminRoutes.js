@@ -16,9 +16,9 @@ const {
 } = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/auth');
 
-// All routes require admin or HR role
+// All routes require admin role
 router.use(protect);
-router.use(authorize('admin', 'hr'));
+router.use(authorize('admin'));
 
 /**
  * @route   GET /api/admin/dashboard
@@ -72,7 +72,7 @@ router.put('/employees/:id', updateEmployee);
  * @desc    Deactivate employee
  * @access  Private (Admin)
  */
-router.delete('/employees/:id', authorize('admin'), deactivateEmployee);
+router.delete('/employees/:id', deactivateEmployee);
 
 /**
  * @route   POST /api/admin/employees/:id/activate

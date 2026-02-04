@@ -56,7 +56,7 @@ export function AuthProvider({ children }) {
     setUser(user);
 
     // Redirect based on role
-    if (user.role === 'admin' || user.role === 'hr') {
+    if (user.role === 'admin') {
       router.push('/admin/dashboard');
     } else {
       router.push('/dashboard');
@@ -92,7 +92,7 @@ export function AuthProvider({ children }) {
     checkAuth,
     updateUser,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin' || user?.role === 'hr',
+    isAdmin: user?.role === 'admin',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

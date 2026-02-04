@@ -45,20 +45,20 @@ router.get('/balance', protect, getLeaveBalance);
 
 /**
  * @route   GET /api/leave/all-requests
- * @desc    Get all leave requests (Admin/HR)
- * @access  Private (Admin/HR)
+ * @desc    Get all leave requests (Admin)
+ * @access  Private (Admin)
  */
-router.get('/all-requests', protect, authorize('admin', 'hr'), getAllLeaveRequests);
+router.get('/all-requests', protect, authorize('admin'), getAllLeaveRequests);
 
 /**
  * @route   PUT /api/leave/:id/review
  * @desc    Approve or reject leave request
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 router.put(
   '/:id/review',
   protect,
-  authorize('admin', 'hr'),
+  authorize('admin'),
   [body('status').isIn(['approved', 'rejected']).withMessage('Invalid status')],
   validate,
   reviewLeaveRequest

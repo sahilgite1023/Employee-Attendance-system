@@ -266,7 +266,7 @@ exports.getAttendanceStats = async (req, res, next) => {
 /**
  * @route   GET /api/attendance/all
  * @desc    Get all employees' attendance (Admin only)
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.getAllAttendance = async (req, res, next) => {
   try {

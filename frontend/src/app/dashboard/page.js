@@ -28,7 +28,7 @@ export default function DashboardPage() {
       return;
     }
 
-    if (user.role_name === 'admin' || user.role_name === 'hr') {
+    if (user.role_name === 'admin') {
       router.push('/admin/dashboard');
       return;
     }

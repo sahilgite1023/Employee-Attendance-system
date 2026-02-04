@@ -8,7 +8,7 @@ const { sendWelcomeEmail } = require('../utils/email');
 /**
  * @route   GET /api/admin/dashboard
  * @desc    Get admin dashboard KPIs
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.getDashboardStats = async (req, res, next) => {
   try {
@@ -61,7 +61,7 @@ exports.getDashboardStats = async (req, res, next) => {
 /**
  * @route   GET /api/admin/employees
  * @desc    Get all employees with filters
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.getAllEmployees = async (req, res, next) => {
   try {
@@ -118,7 +118,7 @@ exports.getAllEmployees = async (req, res, next) => {
 /**
  * @route   GET /api/admin/employees/:id
  * @desc    Get employee by ID
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.getEmployeeById = async (req, res, next) => {
   try {
@@ -151,7 +151,7 @@ exports.getEmployeeById = async (req, res, next) => {
 /**
  * @route   POST /api/admin/employees
  * @desc    Create new employee
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.createEmployee = async (req, res, next) => {
   try {
@@ -260,7 +260,7 @@ exports.createEmployee = async (req, res, next) => {
 /**
  * @route   PUT /api/admin/employees/:id
  * @desc    Update employee
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.updateEmployee = async (req, res, next) => {
   try {
@@ -350,7 +350,7 @@ exports.deactivateEmployee = async (req, res, next) => {
 /**
  * @route   POST /api/admin/employees/:id/activate
  * @desc    Activate employee
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.activateEmployee = async (req, res, next) => {
   try {
@@ -377,7 +377,7 @@ exports.activateEmployee = async (req, res, next) => {
 /**
  * @route   POST /api/admin/employees/:id/deactivate
  * @desc    Soft deactivate employee (set is_active to false)
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.softDeactivateEmployee = async (req, res, next) => {
   try {
@@ -404,7 +404,7 @@ exports.softDeactivateEmployee = async (req, res, next) => {
 /**
  * @route   GET /api/admin/reports/attendance
  * @desc    Generate attendance report
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.getAttendanceReport = async (req, res, next) => {
   try {
@@ -463,7 +463,7 @@ exports.getAttendanceReport = async (req, res, next) => {
 /**
  * @route   GET /api/admin/reports/leave
  * @desc    Generate leave report
- * @access  Private (Admin/HR)
+ * @access  Private (Admin)
  */
 exports.getLeaveReport = async (req, res, next) => {
   try {

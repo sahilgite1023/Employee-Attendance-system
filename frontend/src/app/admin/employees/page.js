@@ -55,7 +55,7 @@ export default function AdminEmployeesPage() {
       return;
     }
 
-    if (user.role !== 'admin' && user.role !== 'hr') {
+    if (user.role !== 'admin') {
       router.push('/dashboard');
       return;
     }
@@ -369,7 +369,6 @@ export default function AdminEmployeesPage() {
                     disabled={submitting}
                   >
                     <option value="1">Admin</option>
-                    <option value="2">HR</option>
                     <option value="3">Employee</option>
                   </select>
                 </div>
