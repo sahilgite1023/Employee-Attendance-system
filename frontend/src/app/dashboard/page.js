@@ -48,15 +48,23 @@ export default function DashboardPage() {
 
       if (attendanceRes.status === 'fulfilled') {
         setTodayAttendance(attendanceRes.value?.data?.attendance || null);
+      } else {
+        console.error('getTodayAttendance failed:', attendanceRes.reason);
       }
       if (balanceRes.status === 'fulfilled') {
         setLeaveBalance(balanceRes.value?.data || null);
+      } else {
+        console.error('getBalance failed:', balanceRes.reason);
       }
       if (historyRes.status === 'fulfilled') {
         setRecentAttendance(historyRes.value?.data?.records || []);
+      } else {
+        console.error('getHistory failed:', historyRes.reason);
       }
       if (statsRes.status === 'fulfilled') {
         setStats(statsRes.value?.data || null);
+      } else {
+        console.error('getStats failed:', statsRes.reason);
       }
     } catch (error) {
       console.error('Failed to load dashboard:', error);
@@ -68,14 +76,22 @@ export default function DashboardPage() {
   const handleCheckIn = async () => {
     try {
       setCheckInLoading(true);
-      await attendanceAPI.checkIn();
+      const result = await attendanceAPI.checkIn();
+      // Directly use the returned attendance data to update state
+      if (result?.data) {
+        setTodayAttendance(result.data);
+      }
       await loadDashboardData();
       alert('✓ Checked in successfully!');
     } catch (error) {
       console.error('Check-in error:', error);
       const errorMessage = error?.message || error?.response?.data?.message || 'Failed to check in. Please check your connection and try again.';
       alert(errorMessage);
-      // Reload dashboard to sync state (record may already exist)
+      // If server says already checked in, force the UI to show checked-in state
+      if (errorMessage?.toLowerCase().includes('already checked in')) {
+        setTodayAttendance((prev) => prev || { check_in_time: new Date().toISOString(), status: 'present' });
+      }
+      // Also try to reload full dashboard data
       await loadDashboardData();
     } finally {
       setCheckInLoading(false);
@@ -85,14 +101,21 @@ export default function DashboardPage() {
   const handleCheckOut = async () => {
     try {
       setCheckOutLoading(true);
-      await attendanceAPI.checkOut();
+      const result = await attendanceAPI.checkOut();
+      // Directly use the returned attendance data to update state
+      if (result?.data) {
+        setTodayAttendance(result.data);
+      }
       await loadDashboardData();
       alert('✓ Checked out successfully!');
     } catch (error) {
       console.error('Check-out error:', error);
       const errorMessage = error?.message || error?.response?.data?.message || 'Failed to check out. Please check your connection and try again.';
       alert(errorMessage);
-      // Reload dashboard to sync state
+      // If server says already checked out, force the UI to show checked-out state
+      if (errorMessage?.toLowerCase().includes('already checked out')) {
+        setTodayAttendance((prev) => prev ? { ...prev, check_out_time: new Date().toISOString() } : prev);
+      }
       await loadDashboardData();
     } finally {
       setCheckOutLoading(false);

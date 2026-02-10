@@ -25,6 +25,8 @@ exports.checkIn = async (req, res, next) => {
     const employeeId = req.user.id;
     const today = formatDate(new Date());
 
+    console.log(`[CHECK-IN] Employee ${employeeId} | Date: ${today} | Server time: ${new Date().toISOString()}`);
+
     // Check if already checked in today
     const existing = await db.query(
       'SELECT * FROM attendance WHERE employee_id = $1 AND attendance_date = $2',
@@ -32,6 +34,7 @@ exports.checkIn = async (req, res, next) => {
     );
 
     if (existing.rows.length > 0) {
+      console.log(`[CHECK-IN] Already exists for employee ${employeeId} on ${today}. Record ID: ${existing.rows[0].id}`);
       return sendError(res, 'You have already checked in today', 400);
     }
 
@@ -136,12 +139,16 @@ exports.getTodayAttendance = async (req, res, next) => {
     const employeeId = req.user.id;
     const today = formatDate(new Date());
 
+    console.log(`[TODAY-ATTENDANCE] Employee ${employeeId} | Date: ${today} | Server time: ${new Date().toISOString()}`);
+
     const result = await db.query(
       'SELECT * FROM attendance WHERE employee_id = $1 AND attendance_date = $2',
       [employeeId, today]
     );
 
     const attendance = result.rows[0] || null;
+
+    console.log(`[TODAY-ATTENDANCE] Employee ${employeeId} | Found: ${!!attendance} | Record ID: ${attendance?.id || 'none'}`);
 
     sendSuccess(res, 'Today\'s attendance retrieved', {
       attendance,
