@@ -39,17 +39,25 @@ export default function DashboardPage() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [attendanceRes, balanceRes, historyRes, statsRes] = await Promise.all([
+      const [attendanceRes, balanceRes, historyRes, statsRes] = await Promise.allSettled([
         attendanceAPI.getTodayAttendance(),
         leaveAPI.getBalance(),
         attendanceAPI.getHistory({ limit: 5 }),
         attendanceAPI.getStats(),
       ]);
 
-      setTodayAttendance(attendanceRes?.data?.attendance || null);
-      setLeaveBalance(balanceRes?.data || null);
-      setRecentAttendance(historyRes?.data?.records || []);
-      setStats(statsRes?.data || null);
+      if (attendanceRes.status === 'fulfilled') {
+        setTodayAttendance(attendanceRes.value?.data?.attendance || null);
+      }
+      if (balanceRes.status === 'fulfilled') {
+        setLeaveBalance(balanceRes.value?.data || null);
+      }
+      if (historyRes.status === 'fulfilled') {
+        setRecentAttendance(historyRes.value?.data?.records || []);
+      }
+      if (statsRes.status === 'fulfilled') {
+        setStats(statsRes.value?.data || null);
+      }
     } catch (error) {
       console.error('Failed to load dashboard:', error);
     } finally {
@@ -67,6 +75,8 @@ export default function DashboardPage() {
       console.error('Check-in error:', error);
       const errorMessage = error?.message || error?.response?.data?.message || 'Failed to check in. Please check your connection and try again.';
       alert(errorMessage);
+      // Reload dashboard to sync state (record may already exist)
+      await loadDashboardData();
     } finally {
       setCheckInLoading(false);
     }
@@ -82,6 +92,8 @@ export default function DashboardPage() {
       console.error('Check-out error:', error);
       const errorMessage = error?.message || error?.response?.data?.message || 'Failed to check out. Please check your connection and try again.';
       alert(errorMessage);
+      // Reload dashboard to sync state
+      await loadDashboardData();
     } finally {
       setCheckOutLoading(false);
     }

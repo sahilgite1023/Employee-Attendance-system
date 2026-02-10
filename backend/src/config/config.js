@@ -32,6 +32,9 @@ module.exports = {
   // Frontend
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
 
+  // Timezone
+  TIMEZONE: process.env.TIMEZONE || 'Asia/Kolkata',
+
   // Attendance Rules
   CHECK_IN_START_TIME: process.env.CHECK_IN_START_TIME || '09:00',
   CHECK_IN_END_TIME: process.env.CHECK_IN_END_TIME || '09:30',

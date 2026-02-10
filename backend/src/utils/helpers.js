@@ -10,10 +10,11 @@ const formatTime = (date) => {
 };
 
 /**
- * Format date to YYYY-MM-DD
+ * Format date to YYYY-MM-DD in the configured timezone (default: Asia/Kolkata)
  */
+const TIMEZONE = process.env.TIMEZONE || 'Asia/Kolkata';
 const formatDate = (date) => {
-  return new Date(date).toISOString().split('T')[0];
+  return new Date(date).toLocaleDateString('en-CA', { timeZone: TIMEZONE });
 };
 
 /**
