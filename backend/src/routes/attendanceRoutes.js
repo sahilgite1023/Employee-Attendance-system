@@ -9,25 +9,29 @@ const {
   getAllAttendance,
 } = require('../controllers/attendanceController');
 const { protect, authorize } = require('../middleware/auth');
+const selectiveIpRestriction = require('../middleware/selectiveIpRestriction');
 
 /**
  * @route   POST /api/attendance/check-in
  * @desc    Check in for the day
  * @access  Private (Employee)
+ * @middleware selectiveIpRestriction - IP restriction applied here
  */
-router.post('/check-in', protect, checkIn);
+router.post('/check-in', selectiveIpRestriction, protect, checkIn);
 
 /**
  * @route   POST /api/attendance/check-out
  * @desc    Check out for the day
  * @access  Private (Employee)
+ * @middleware selectiveIpRestriction - IP restriction applied here
  */
-router.post('/check-out', protect, checkOut);
+router.post('/check-out', selectiveIpRestriction, protect, checkOut);
 
 /**
  * @route   GET /api/attendance/today
  * @desc    Get today's attendance status
  * @access  Private (Employee)
+ * @note    No IP restriction applied
  */
 router.get('/today', protect, getTodayAttendance);
 
@@ -35,6 +39,7 @@ router.get('/today', protect, getTodayAttendance);
  * @route   GET /api/attendance/history
  * @desc    Get attendance history with filters
  * @access  Private (Employee)
+ * @note    No IP restriction applied
  */
 router.get('/history', protect, getAttendanceHistory);
 
@@ -42,6 +47,7 @@ router.get('/history', protect, getAttendanceHistory);
  * @route   GET /api/attendance/stats
  * @desc    Get attendance statistics
  * @access  Private (Employee)
+ * @note    No IP restriction applied
  */
 router.get('/stats', protect, getAttendanceStats);
 
@@ -49,6 +55,7 @@ router.get('/stats', protect, getAttendanceStats);
  * @route   GET /api/attendance/all
  * @desc    Get all employees' attendance (Admin only)
  * @access  Private (Admin)
+ * @note    No IP restriction applied
  */
 router.get('/all', protect, authorize('admin'), getAllAttendance);
 

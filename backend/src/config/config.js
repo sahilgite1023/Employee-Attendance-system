@@ -17,9 +17,13 @@ module.exports = {
   JWT_EXPIRE: process.env.JWT_EXPIRE || '7d',
   JWT_RESET_EXPIRE: process.env.JWT_RESET_EXPIRE || '15m',
 
-  // Network Security
+  // Network Security (Legacy - applies to all routes)
   ENABLE_IP_RESTRICTION: process.env.ENABLE_IP_RESTRICTION === 'true',
   ALLOWED_IPS: process.env.ALLOWED_IPS ? process.env.ALLOWED_IPS.split(',') : [],
+
+  // Selective Network Security (Attendance-only restriction)
+  ENABLE_SELECTIVE_IP_RESTRICTION: process.env.ENABLE_SELECTIVE_IP_RESTRICTION === 'true',
+  ATTENDANCE_ALLOWED_IPS: process.env.ATTENDANCE_ALLOWED_IPS ? process.env.ATTENDANCE_ALLOWED_IPS.split(',') : [],
 
   // Email
   EMAIL_HOST: process.env.EMAIL_HOST,

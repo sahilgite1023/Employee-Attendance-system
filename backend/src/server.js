@@ -6,7 +6,6 @@ require('dotenv').config();
 
 const db = require('./config/database');
 const { PORT, NODE_ENV, FRONTEND_URL } = require('./config/config');
-const ipRestriction = require('./middleware/ipRestriction');
 const errorHandler = require('./middleware/errorHandler');
 
 // Import routes
@@ -55,9 +54,6 @@ if (NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// IP Restriction middleware (configurable via env)
-app.use(ipRestriction);
-
 // Health check
 app.get('/health', (req, res) => {
   res.json({
@@ -69,6 +65,7 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+// Note: Selective IP restrictions are applied per-route in attendanceRoutes
 app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/leave', leaveRoutes);
