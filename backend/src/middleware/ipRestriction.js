@@ -1,6 +1,18 @@
 const { ENABLE_IP_RESTRICTION, ALLOWED_IPS } = require('../config/config');
 
 /**
+ * Normalize IP address:
+ * - Strips IPv4-mapped IPv6 prefix (::ffff:x.x.x.x → x.x.x.x)
+ * - Maps IPv6 loopback (::1) to 127.0.0.1
+ */
+const normalizeIP = (ip) => {
+  if (!ip) return ip;
+  if (ip.startsWith('::ffff:')) return ip.substring(7);
+  if (ip === '::1') return '127.0.0.1';
+  return ip;
+};
+
+/**
  * Check if IP address is within allowed range
  */
 const isIPAllowed = (clientIP) => {
@@ -14,14 +26,15 @@ const isIPAllowed = (clientIP) => {
 
   // Check if client IP matches any allowed IP/range
   for (const allowedIP of ALLOWED_IPS) {
-    if (allowedIP.includes('/')) {
+    const trimmedIP = allowedIP.trim();
+    if (trimmedIP.includes('/')) {
       // CIDR notation (e.g., 192.168.1.0/24)
-      if (isIPInCIDR(clientIP, allowedIP)) {
+      if (isIPInCIDR(clientIP, trimmedIP)) {
         return true;
       }
     } else {
       // Exact IP match
-      if (clientIP === allowedIP.trim()) {
+      if (clientIP === trimmedIP) {
         return true;
       }
     }
@@ -34,8 +47,8 @@ const isIPAllowed = (clientIP) => {
  * Check if IP is in CIDR range
  */
 const isIPInCIDR = (ip, cidr) => {
-  const [range, bits = 32] = cidr.split('/');
-  const mask = ~(2 ** (32 - bits) - 1);
+  const [range, bits = '32'] = cidr.split('/');
+  const mask = ~(2 ** (32 - parseInt(bits, 10)) - 1);
   return (ipToInt(ip) & mask) === (ipToInt(range) & mask);
 };
 
@@ -50,14 +63,14 @@ const ipToInt = (ip) => {
  * Get client IP address from request
  */
 const getClientIP = (req) => {
-  // Check various headers for real IP
-  return (
-    req.headers['x-forwarded-for']?.split(',')[0] ||
+  // Check various headers for real IP (normalize to plain IPv4 where possible)
+  const raw =
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
     req.headers['x-real-ip'] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    req.ip
-  );
+    req.connection?.remoteAddress ||
+    req.socket?.remoteAddress ||
+    req.ip;
+  return normalizeIP(raw);
 };
 
 /**
