@@ -17,6 +17,9 @@ const adminRoutes = require('./routes/adminRoutes');
 // Initialize app
 const app = express();
 
+// Trust reverse proxy (required for correct client IP on Render, Railway, Heroku, etc.)
+app.set('trust proxy', true);
+
 // Security middleware
 app.use(helmet());
 
@@ -61,6 +64,31 @@ app.get('/health', (req, res) => {
     message: 'Server is running',
     timestamp: new Date().toISOString(),
     environment: NODE_ENV,
+  });
+});
+
+// IP debug endpoint — helps you confirm what IP the server sees from your device
+app.get('/api/my-ip', (req, res) => {
+  const normalizeIP = (ip) => {
+    if (!ip) return ip;
+    if (ip.startsWith('::ffff:')) return ip.substring(7);
+    if (ip === '::1') return '127.0.0.1';
+    return ip;
+  };
+  const raw =
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.headers['x-real-ip'] ||
+    req.connection?.remoteAddress ||
+    req.socket?.remoteAddress ||
+    req.ip;
+  res.json({
+    detectedIP: normalizeIP(raw),
+    raw: {
+      'x-forwarded-for': req.headers['x-forwarded-for'] || null,
+      'x-real-ip': req.headers['x-real-ip'] || null,
+      'req.ip': req.ip,
+      'remoteAddress': req.connection?.remoteAddress || req.socket?.remoteAddress || null,
+    },
   });
 });
 

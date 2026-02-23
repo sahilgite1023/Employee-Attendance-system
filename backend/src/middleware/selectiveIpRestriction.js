@@ -1,4 +1,12 @@
-const { ENABLE_SELECTIVE_IP_RESTRICTION, ATTENDANCE_ALLOWED_IPS, NODE_ENV } = require('../config/config');
+const { ENABLE_SELECTIVE_IP_RESTRICTION, ATTENDANCE_ALLOWED_IPS } = require('../config/config');
+
+// Log config on startup so it's visible in server logs
+if (ENABLE_SELECTIVE_IP_RESTRICTION) {
+  console.log('[IP Restriction] Selective IP restriction is ENABLED');
+  console.log('[IP Restriction] Allowed IPs/ranges:', ATTENDANCE_ALLOWED_IPS.length ? ATTENDANCE_ALLOWED_IPS : '(none configured — all check-ins will be BLOCKED)');
+} else {
+  console.log('[IP Restriction] Selective IP restriction is DISABLED — all IPs can check in');
+}
 
 /**
  * Normalize IP address:
@@ -21,7 +29,10 @@ const isIPAllowed = (clientIP) => {
   }
 
   if (ATTENDANCE_ALLOWED_IPS.length === 0) {
-    return true; // No restrictions if list is empty
+    // Restriction is enabled but no IPs are configured — deny everyone
+    // (prevents accidental open access when env var is missing)
+    console.warn('[IP Restriction] ENABLE_SELECTIVE_IP_RESTRICTION=true but ATTENDANCE_ALLOWED_IPS is empty — denying all check-ins');
+    return false;
   }
 
   // Check if client IP matches any allowed IP/range
@@ -85,16 +96,17 @@ const selectiveIpRestriction = (req, res, next) => {
   const clientIP = getClientIP(req);
 
   if (!isIPAllowed(clientIP)) {
-    console.log(`Access denied from IP: ${clientIP} for check-in/check-out`);
+    console.log(`[IP Restriction] BLOCKED: ${clientIP} tried to check-in/check-out`);
     
     return res.status(403).json({
       success: false,
       message: 'Check-in/Check-out is only accessible from the office network.',
       code: 'IP_RESTRICTED',
-      clientIP: clientIP, // always expose so it's easy to debug/whitelist
+      clientIP: clientIP, // always shown so admins can whitelist the IP
     });
   }
 
+  console.log(`[IP Restriction] ALLOWED: ${clientIP}`);
   next();
 };
 
