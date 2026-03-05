@@ -24,27 +24,32 @@ export function AuthProvider({ children }) {
       const savedUser = Cookies.get('user');
       
       if (token && savedUser) {
-        // First, set user from cookie immediately
+        // Set user from cookie immediately for instant UI
         try {
           setUser(JSON.parse(savedUser));
         } catch (e) {
           console.error('Failed to parse saved user:', e);
         }
+        // Set loading false immediately — don't wait for network
+        setLoading(false);
         
-        // Then verify with backend (optional - won't logout on failure)
-        try {
-          const response = await authAPI.getMe();
-          setUser(response.data);
-        } catch (error) {
-          // Backend verification failed, but keep using cached user
-          console.warn('Backend verification failed, using cached user data');
-        }
+        // Background verification (non-blocking)
+        authAPI.getMe()
+          .then((response) => {
+            if (response.data) {
+              setUser(response.data);
+              Cookies.set('user', JSON.stringify(response.data), { expires: 7 });
+            }
+          })
+          .catch(() => {
+            console.warn('Background auth verification failed, using cached data');
+          });
+        return; // skip finally setLoading
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const login = async (employeeId, password, rememberMe = false) => {
@@ -59,11 +64,11 @@ export function AuthProvider({ children }) {
     Cookies.set('user', JSON.stringify(user), { expires: cookieExpiration });
     setUser(user);
 
-    // Redirect based on role
-    if (user.role === 'admin') {
-      router.push('/admin/dashboard');
+    // Redirect based on role — use replace to avoid back-button loop
+    if (user.role === 'admin' || user.role === 'hr') {
+      router.replace('/admin/dashboard');
     } else {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
 
     return response;

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
+import Alert from '@/components/common/Alert';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -91,6 +92,7 @@ export default function LoginPage() {
     } catch (error) {
       setApiError(
         error.response?.data?.message || 
+        error.message ||
         'Login failed. Please check your credentials.'
       );
     } finally {
@@ -99,11 +101,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-100 p-4 sm:p-6 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-200 rounded-full opacity-20 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary-300 rounded-full opacity-20 blur-3xl" />
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-modal w-full max-w-md p-8 sm:p-10 relative z-10 animate-scale-in">
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl mb-4 shadow-lg">
             <svg
               className="w-8 h-8 text-white"
               fill="none"
@@ -118,34 +126,25 @@ export default function LoginPage() {
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+          <p className="text-gray-600">
             Sign in to your attendance account
           </p>
         </div>
 
         {/* Error Alert */}
         {apiError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center">
-              <svg
-                className="w-5 h-5 text-red-500 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <p className="text-sm text-red-700">{apiError}</p>
-            </div>
+          <div className="mb-6">
+            <Alert 
+              type="danger" 
+              message={apiError}
+              onClose={() => setApiError('')}
+            />
           </div>
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <Input
             label="Employee ID"
             type="text"
@@ -155,6 +154,12 @@ export default function LoginPage() {
             error={errors.employeeId}
             placeholder="e.g., EMP001"
             disabled={loading}
+            required
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            }
           />
 
           <Input
@@ -166,32 +171,36 @@ export default function LoginPage() {
             error={errors.password}
             placeholder="Enter your password"
             disabled={loading}
+            required
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            }
           />
 
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  disabled={loading}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-700 cursor-pointer"
-                >
-                  Remember me
-                </label>
-              </div>
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={loading}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded cursor-pointer"
+              />
+              <label
+                htmlFor="remember-me"
+                className="ml-2 block text-gray-700 cursor-pointer select-none"
+              >
+                Remember me
+              </label>
             </div>
 
             <Link
               href="/forgot-password"
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+              className="font-medium text-primary-600 hover:text-primary-700 transition-colors"
             >
               Forgot password?
             </Link>
@@ -200,13 +209,21 @@ export default function LoginPage() {
           <Button
             type="submit"
             variant="primary"
-            className="w-full"
+            fullWidth
             loading={loading}
             disabled={loading}
+            size="lg"
           >
-            Sign In
+            {loading ? 'Signing In...' : 'Sign In'}
           </Button>
         </form>
+
+        {/* Footer */}
+        <div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
+          <p>
+            Having trouble? Contact your administrator
+          </p>
+        </div>
       </div>
     </div>
   );

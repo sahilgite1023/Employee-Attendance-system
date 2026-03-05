@@ -8,19 +8,22 @@ export default function Button({
   onClick,
   type = 'button',
   className = '',
+  icon,
   ...props
 }) {
-  const baseClasses = 'btn transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center';
+  const baseClasses = 'btn transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2';
   
   const variantClasses = {
     primary: 'btn-primary',
     secondary: 'btn-secondary',
     success: 'btn-success',
     danger: 'btn-danger',
-    outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50',
+    outline: 'btn-outline',
+    ghost: 'btn-ghost',
   };
 
   const sizeClasses = {
+    xs: 'px-2 py-1 text-xs rounded-md',
     sm: 'px-3 py-1.5 text-sm rounded-md',
     md: 'px-4 py-2 text-base rounded-lg',
     lg: 'px-6 py-3 text-lg rounded-lg',
@@ -38,10 +41,11 @@ export default function Button({
     >
       {loading && (
         <svg
-          className="animate-spin -ml-1 mr-2 h-4 w-4"
+          className="animate-spin -ml-1 h-4 w-4"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <circle
             className="opacity-25"
@@ -58,7 +62,8 @@ export default function Button({
           />
         </svg>
       )}
-      {children}
+      {icon && !loading && <span className="flex-shrink-0">{icon}</span>}
+      <span>{children}</span>
     </button>
   );
 }

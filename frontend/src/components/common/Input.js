@@ -6,6 +6,8 @@ export default function Input({
   type = 'text',
   required = false,
   className = '',
+  helpText,
+  icon,
   ...props
 }) {
   const isPasswordField = type === 'password';
@@ -21,9 +23,16 @@ export default function Input({
         </label>
       )}
       <div className="relative">
+        {icon && (
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span className="text-gray-400">{icon}</span>
+          </div>
+        )}
         <input
           type={inputType}
-          className={`input ${isPasswordField ? 'pr-12' : ''} ${error ? 'border-danger-500 focus:ring-danger-500' : ''} ${className}`}
+          className={`input ${error ? 'input-error' : ''} ${icon ? 'pl-10' : ''} ${isPasswordField ? 'pr-12' : ''} ${className}`}
+          aria-invalid={error ? 'true' : 'false'}
+          aria-describedby={error ? `${props.name}-error` : helpText ? `${props.name}-help` : undefined}
           {...props}
         />
         {isPasswordField && (
@@ -48,7 +57,15 @@ export default function Input({
         )}
       </div>
       {error && (
-        <p className="mt-1 text-sm text-danger-600">{error}</p>
+        <p id={`${props.name}-error`} className="mt-1.5 text-sm text-danger-600 flex items-center gap-1">
+          <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          {error}
+        </p>
+      )}
+      {helpText && !error && (
+        <p id={`${props.name}-help`} className="mt-1.5 text-sm text-gray-500">{helpText}</p>
       )}
     </div>
   );

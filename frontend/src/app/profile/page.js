@@ -117,20 +117,19 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
-            <div className="flex items-center space-x-4">
-              <Link href="/dashboard">
-                <Button variant="outline">Back to Dashboard</Button>
-              </Link>
-              <Button variant="outline" onClick={logout}>
-                Logout
-              </Button>
-            </div>
+      {/* Sticky Header with Navigation */}
+      <header className="bg-white shadow-sm sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
+            <Button variant="outline" onClick={logout} className="text-sm">Logout</Button>
           </div>
+          <nav className="flex space-x-1 -mb-px">
+            <Link href="/dashboard" className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 transition-colors">Dashboard</Link>
+            <Link href="/attendance" className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 transition-colors">Attendance</Link>
+            <Link href="/leave" className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 transition-colors">Leave</Link>
+            <span className="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Profile</span>
+          </nav>
         </div>
       </header>
 

@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import Loader from '@/components/common/Loader';
 
 export default function Home() {
   const router = useRouter();
@@ -23,11 +24,8 @@ export default function Home() {
   }, [isAuthenticated, isAdmin, loading, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading...</p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-white">
+      <Loader text="Redirecting..." />
     </div>
   );
 }

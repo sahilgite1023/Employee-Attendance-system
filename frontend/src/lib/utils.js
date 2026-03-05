@@ -52,6 +52,7 @@ export const getGreeting = () => {
 export const getStatusBadgeClass = (status) => {
   const statusMap = {
     present: 'badge-success',
+    'on-time': 'badge-success',
     late: 'badge-warning',
     absent: 'badge-danger',
     'half-day': 'badge-info',
