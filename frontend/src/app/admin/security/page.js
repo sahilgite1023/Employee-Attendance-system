@@ -398,6 +398,7 @@ export default function SecuritySettingsPage() {
       {/* =================== ADD MODAL =================== */}
       {showAddModal && (
         <Modal
+          isOpen={showAddModal}
           title="Add Allowed Network"
           onClose={() => setShowAddModal(false)}
         >
@@ -435,6 +436,7 @@ export default function SecuritySettingsPage() {
       {/* =================== EDIT MODAL =================== */}
       {showEditModal && (
         <Modal
+          isOpen={showEditModal}
           title="Edit Network"
           onClose={() => { setShowEditModal(false); setSelectedNetwork(null); }}
         >
@@ -464,6 +466,7 @@ export default function SecuritySettingsPage() {
       {/* =================== DELETE MODAL =================== */}
       {showDeleteModal && (
         <Modal
+          isOpen={showDeleteModal}
           title="Delete Network"
           onClose={() => { setShowDeleteModal(false); setSelectedNetwork(null); }}
         >
