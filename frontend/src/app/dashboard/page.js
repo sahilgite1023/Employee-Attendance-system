@@ -12,6 +12,7 @@ import Badge from '@/components/common/Badge';
 import Loader from '@/components/common/Loader';
 import EmptyState from '@/components/common/EmptyState';
 import Alert from '@/components/common/Alert';
+import Modal from '@/components/common/Modal';
 import LiveClock from '@/components/common/LiveClock';
 
 export default function DashboardPage() {
@@ -26,6 +27,7 @@ export default function DashboardPage() {
   const [checkOutLoading, setCheckOutLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState(null); // 'checkin' | 'checkout' | null
 
   useEffect(() => {
     if (!user) {
@@ -270,7 +272,7 @@ export default function DashboardPage() {
                 <Button
                   variant="success"
                   size="lg"
-                  onClick={handleCheckIn}
+                  onClick={() => setConfirmAction('checkin')}
                   loading={checkInLoading}
                   disabled={checkInLoading}
                   icon={
@@ -286,7 +288,7 @@ export default function DashboardPage() {
                 <Button
                   variant="danger"
                   size="lg"
-                  onClick={handleCheckOut}
+                  onClick={() => setConfirmAction('checkout')}
                   loading={checkOutLoading}
                   disabled={checkOutLoading}
                   icon={
@@ -488,6 +490,61 @@ export default function DashboardPage() {
           )}
         </Card>
       </main>
+
+      {/* Confirmation Modal for Check-In / Check-Out */}
+      <Modal
+        isOpen={!!confirmAction}
+        onClose={() => setConfirmAction(null)}
+        title={confirmAction === 'checkin' ? 'Confirm Check-In' : 'Confirm Check-Out'}
+        size="sm"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => setConfirmAction(null)}
+            >
+              No, Cancel
+            </Button>
+            <Button
+              variant={confirmAction === 'checkin' ? 'success' : 'danger'}
+              loading={confirmAction === 'checkin' ? checkInLoading : checkOutLoading}
+              disabled={checkInLoading || checkOutLoading}
+              onClick={async () => {
+                if (confirmAction === 'checkin') {
+                  await handleCheckIn();
+                } else {
+                  await handleCheckOut();
+                }
+                setConfirmAction(null);
+              }}
+            >
+              Yes, {confirmAction === 'checkin' ? 'Check In' : 'Check Out'}
+            </Button>
+          </>
+        }
+      >
+        <div className="text-center py-4">
+          <div className={`mx-auto flex items-center justify-center w-14 h-14 rounded-full ${confirmAction === 'checkin' ? 'bg-success-100' : 'bg-danger-100'} mb-4`}>
+            {confirmAction === 'checkin' ? (
+              <svg className="w-7 h-7 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+            ) : (
+              <svg className="w-7 h-7 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            )}
+          </div>
+          <p className="text-gray-700 text-lg">
+            Are you sure you want to <span className="font-semibold">{confirmAction === 'checkin' ? 'Check-In' : 'Check-Out'}</span>?
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            {confirmAction === 'checkin'
+              ? 'This will record your attendance start time for today.'
+              : 'This will record your attendance end time for today.'}
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }
