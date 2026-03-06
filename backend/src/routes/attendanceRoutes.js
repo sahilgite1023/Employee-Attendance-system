@@ -9,23 +9,23 @@ const {
   getAllAttendance,
 } = require('../controllers/attendanceController');
 const { protect, authorize } = require('../middleware/auth');
-const selectiveIpRestriction = require('../middleware/selectiveIpRestriction');
+const { dbIpRestriction } = require('../middleware/dbIpRestriction');
 
 /**
  * @route   POST /api/attendance/check-in
  * @desc    Check in for the day
  * @access  Private (Employee)
- * @middleware selectiveIpRestriction - IP restriction applied here
+ * @middleware dbIpRestriction - DB-based IP restriction (admin-managed)
  */
-router.post('/check-in', selectiveIpRestriction, protect, checkIn);
+router.post('/check-in', protect, dbIpRestriction('CHECK_IN'), checkIn);
 
 /**
  * @route   POST /api/attendance/check-out
  * @desc    Check out for the day
  * @access  Private (Employee)
- * @middleware selectiveIpRestriction - IP restriction applied here
+ * @middleware dbIpRestriction - DB-based IP restriction (admin-managed)
  */
-router.post('/check-out', selectiveIpRestriction, protect, checkOut);
+router.post('/check-out', protect, dbIpRestriction('CHECK_OUT'), checkOut);
 
 /**
  * @route   GET /api/attendance/today

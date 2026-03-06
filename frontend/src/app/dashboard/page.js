@@ -95,7 +95,12 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Check-in error:', error);
       const errorMsg = error?.message || error?.response?.data?.message || 'Failed to check in. Please try again.';
-      setErrorMessage(errorMsg);
+      const errorCode = error?.code || error?.response?.data?.code;
+      if (errorCode === 'IP_RESTRICTED') {
+        setErrorMessage('🔒 Attendance can only be marked from the office network. Connect to office Wi-Fi and try again.');
+      } else {
+        setErrorMessage(errorMsg);
+      }
       if (errorMsg?.toLowerCase().includes('already checked in')) {
         setTodayAttendance((prev) => prev || { check_in_time: new Date().toISOString(), status: 'present' });
       }
@@ -119,7 +124,12 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Check-out error:', error);
       const errorMsg = error?.message || error?.response?.data?.message || 'Failed to check out. Please try again.';
-      setErrorMessage(errorMsg);
+      const errorCode = error?.code || error?.response?.data?.code;
+      if (errorCode === 'IP_RESTRICTED') {
+        setErrorMessage('🔒 Attendance can only be marked from the office network. Connect to office Wi-Fi and try again.');
+      } else {
+        setErrorMessage(errorMsg);
+      }
       if (errorMsg?.toLowerCase().includes('already checked out')) {
         setTodayAttendance((prev) => prev ? { ...prev, check_out_time: new Date().toISOString() } : prev);
       }

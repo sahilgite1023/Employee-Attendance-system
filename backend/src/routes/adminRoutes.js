@@ -14,6 +14,14 @@ const {
   getAttendanceReport,
   getLeaveReport,
 } = require('../controllers/adminController');
+const {
+  getAllNetworks,
+  addNetwork,
+  updateNetwork,
+  deleteNetwork,
+  toggleNetwork,
+  getIpAccessLogs,
+} = require('../controllers/networkController');
 const { protect, authorize } = require('../middleware/auth');
 
 // All routes require admin role
@@ -101,5 +109,59 @@ router.get('/reports/attendance', getAttendanceReport);
  * @access  Private (Admin/HR)
  */
 router.get('/reports/leave', getLeaveReport);
+
+// ============================================
+// NETWORK SECURITY ROUTES
+// ============================================
+
+/**
+ * @route   GET /api/admin/networks
+ * @desc    Get all allowed networks
+ * @access  Private (Admin)
+ */
+router.get('/networks', getAllNetworks);
+
+/**
+ * @route   POST /api/admin/networks
+ * @desc    Add a new allowed network
+ * @access  Private (Admin)
+ */
+router.post(
+  '/networks',
+  [
+    body('label').notEmpty().withMessage('Network label is required'),
+    body('ip_or_cidr').notEmpty().withMessage('IP or CIDR is required'),
+  ],
+  validate,
+  addNetwork
+);
+
+/**
+ * @route   PUT /api/admin/networks/:id
+ * @desc    Update an allowed network
+ * @access  Private (Admin)
+ */
+router.put('/networks/:id', updateNetwork);
+
+/**
+ * @route   DELETE /api/admin/networks/:id
+ * @desc    Delete an allowed network
+ * @access  Private (Admin)
+ */
+router.delete('/networks/:id', deleteNetwork);
+
+/**
+ * @route   PATCH /api/admin/networks/:id/toggle
+ * @desc    Toggle network active/inactive
+ * @access  Private (Admin)
+ */
+router.patch('/networks/:id/toggle', toggleNetwork);
+
+/**
+ * @route   GET /api/admin/ip-logs
+ * @desc    Get IP access logs (security audit)
+ * @access  Private (Admin)
+ */
+router.get('/ip-logs', getIpAccessLogs);
 
 module.exports = router;

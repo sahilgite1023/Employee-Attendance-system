@@ -201,6 +201,9 @@ export default function AdminAttendancePage() {
             <Link href="/admin/reports">
               <Button variant="outline" size="sm" className="text-xs sm:text-sm">📊 Reports</Button>
             </Link>
+            <Link href="/admin/security">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">🔒 Security</Button>
+            </Link>
           </div>
         </div>
       </header>

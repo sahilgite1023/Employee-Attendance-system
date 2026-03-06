@@ -96,6 +96,9 @@ export default function AdminDashboardPage() {
             <Link href="/admin/reports">
               <Button variant="outline" size="sm" className="text-xs sm:text-sm">📊 <span className="hidden sm:inline">Reports</span></Button>
             </Link>
+            <Link href="/admin/security">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">🔒 <span className="hidden sm:inline">Security</span></Button>
+            </Link>
           </div>
         </div>
       </header>

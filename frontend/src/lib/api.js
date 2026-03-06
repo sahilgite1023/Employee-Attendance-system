@@ -99,6 +99,14 @@ export const adminAPI = {
   deactivateEmployee: (id) => api.delete(`/admin/employees/${id}`),
   getAttendanceReport: (params) => api.get('/admin/reports/attendance', { params }),
   getLeaveReport: (params) => api.get('/admin/reports/leave', { params }),
+
+  // Network security
+  getNetworks: () => api.get('/admin/networks'),
+  addNetwork: (data) => api.post('/admin/networks', data),
+  updateNetwork: (id, data) => api.put(`/admin/networks/${id}`, data),
+  deleteNetwork: (id) => api.delete(`/admin/networks/${id}`),
+  toggleNetwork: (id) => api.patch(`/admin/networks/${id}/toggle`),
+  getIpLogs: (params) => api.get('/admin/ip-logs', { params }),
 };
 
 export default api;

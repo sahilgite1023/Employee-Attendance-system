@@ -24,8 +24,9 @@ exports.checkIn = async (req, res, next) => {
   try {
     const employeeId = req.user.id;
     const today = formatDate(new Date());
+    const clientIP = req.clientIP || null; // Set by dbIpRestriction middleware
 
-    console.log(`[CHECK-IN] Employee ${employeeId} | Date: ${today} | Server time: ${new Date().toISOString()}`);
+    console.log(`[CHECK-IN] Employee ${employeeId} | Date: ${today} | IP: ${clientIP} | Server time: ${new Date().toISOString()}`);
 
     // Check if already checked in today
     const existing = await db.query(
@@ -55,17 +56,17 @@ exports.checkIn = async (req, res, next) => {
       status = 'late';
     }
 
-    // Insert attendance record
+    // Insert attendance record with client IP
     const result = await db.query(
       `INSERT INTO attendance 
-       (employee_id, attendance_date, check_in_time, status, is_late, late_by_minutes)
-       VALUES ($1, $2, $3, $4, $5, $6)
+       (employee_id, attendance_date, check_in_time, check_in_ip, status, is_late, late_by_minutes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [employeeId, today, checkInTime, status, isLateCheckin, lateByMinutes]
+      [employeeId, today, checkInTime, clientIP, status, isLateCheckin, lateByMinutes]
     );
 
     // Create audit log
-    await createAuditLog(employeeId, 'CHECK_IN', 'attendance', result.rows[0].id, { status }, req);
+    await createAuditLog(employeeId, 'CHECK_IN', 'attendance', result.rows[0].id, { status, ip: clientIP }, req);
 
     sendSuccess(res, 'Checked in successfully', result.rows[0], 201);
   } catch (error) {
@@ -82,6 +83,7 @@ exports.checkOut = async (req, res, next) => {
   try {
     const employeeId = req.user.id;
     const today = formatDate(new Date());
+    const clientIP = req.clientIP || null; // Set by dbIpRestriction middleware
 
     // Get today's attendance record
     const result = await db.query(
@@ -111,17 +113,17 @@ exports.checkOut = async (req, res, next) => {
       status = 'present';
     }
 
-    // Update attendance record
+    // Update attendance record with checkout IP
     const updated = await db.query(
       `UPDATE attendance 
-       SET check_out_time = $1, total_hours = $2, status = $3
-       WHERE id = $4
+       SET check_out_time = $1, total_hours = $2, status = $3, check_out_ip = $4
+       WHERE id = $5
        RETURNING *`,
-      [checkOutTime, totalHours, status, attendance.id]
+      [checkOutTime, totalHours, status, clientIP, attendance.id]
     );
 
     // Create audit log
-    await createAuditLog(employeeId, 'CHECK_OUT', 'attendance', attendance.id, { totalHours, status }, req);
+    await createAuditLog(employeeId, 'CHECK_OUT', 'attendance', attendance.id, { totalHours, status, ip: clientIP }, req);
 
     sendSuccess(res, 'Checked out successfully', updated.rows[0]);
   } catch (error) {
