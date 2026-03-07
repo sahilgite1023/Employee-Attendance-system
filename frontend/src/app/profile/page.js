@@ -12,7 +12,7 @@ import Loader from '@/components/common/Loader';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -25,10 +25,11 @@ export default function ProfilePage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
     }
-  }, [user, router]);
+  }, [user, router, authLoading]);
 
   const validatePasswordForm = () => {
     const newErrors = {};

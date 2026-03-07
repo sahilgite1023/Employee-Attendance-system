@@ -13,7 +13,7 @@ import Loader from '@/components/common/Loader';
 
 export default function AdminReportsPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState(null);
   const [filters, setFilters] = useState({
@@ -24,6 +24,7 @@ export default function AdminReportsPage() {
   const [employees, setEmployees] = useState([]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
       return;
@@ -35,7 +36,7 @@ export default function AdminReportsPage() {
     }
 
     loadEmployees();
-  }, [user, router]);
+  }, [user, router, authLoading]);
 
   const loadEmployees = async () => {
     try {

@@ -14,7 +14,11 @@ const api = axios.create({
 // Request interceptor - add token to requests
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('token');
+    let token = Cookies.get('token');
+    // Fallback: try localStorage if cookie is missing
+    if (!token && typeof window !== 'undefined') {
+      token = localStorage.getItem('authToken');
+    }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -71,6 +75,7 @@ export const attendanceAPI = {
   checkIn: () => api.post('/attendance/check-in'),
   checkOut: () => api.post('/attendance/check-out'),
   getTodayAttendance: () => api.get('/attendance/today'),
+  getCurrentSession: () => api.get('/attendance/current-session'),
   getHistory: (params) => api.get('/attendance/history', { params }),
   getStats: () => api.get('/attendance/stats'),
   getAll: (params) => api.get('/attendance/all', { params }),

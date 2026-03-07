@@ -12,11 +12,12 @@ import Loader from '@/components/common/Loader';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
       return;
@@ -28,7 +29,7 @@ export default function AdminDashboardPage() {
     }
 
     loadDashboard();
-  }, [user, router]);
+  }, [user, router, authLoading]);
 
   const loadDashboard = async () => {
     try {

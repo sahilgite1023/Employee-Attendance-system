@@ -244,6 +244,60 @@ exports.getAttendanceHistory = async (req, res, next) => {
 };
 
 /**
+ * @route   GET /api/attendance/current-session
+ * @desc    Get active (open) session for today - used for live timer
+ * @access  Private (Employee)
+ */
+exports.getCurrentSession = async (req, res, next) => {
+  try {
+    const employeeId = req.user.id;
+    const today = formatDate(new Date());
+
+    const result = await db.query(
+      `SELECT id, employee_id, attendance_date, check_in_time, check_out_time, 
+              total_hours, status, is_late, late_by_minutes, check_in_ip
+       FROM attendance 
+       WHERE employee_id = $1 AND attendance_date = $2`,
+      [employeeId, today]
+    );
+
+    const session = result.rows[0] || null;
+
+    if (!session) {
+      return sendSuccess(res, 'No session found for today', {
+        session: null,
+        sessionStatus: 'NO_SESSION',
+      });
+    }
+
+    // Determine session status
+    let sessionStatus = 'CLOSED';
+    if (session.check_in_time && !session.check_out_time) {
+      sessionStatus = 'OPEN';
+    } else if (session.check_in_time && session.check_out_time) {
+      sessionStatus = 'CLOSED';
+    }
+
+    // Calculate live duration for open sessions
+    let liveDurationSeconds = 0;
+    if (sessionStatus === 'OPEN') {
+      const checkInDate = new Date(session.check_in_time);
+      const now = new Date();
+      liveDurationSeconds = Math.floor((now - checkInDate) / 1000);
+    }
+
+    sendSuccess(res, 'Current session retrieved', {
+      session,
+      sessionStatus,
+      liveDurationSeconds,
+      serverTime: new Date().toISOString(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @route   GET /api/attendance/stats
  * @desc    Get attendance statistics
  * @access  Private (Employee)

@@ -15,7 +15,7 @@ import Alert from '@/components/common/Alert';
 
 export default function SecuritySettingsPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [networks, setNetworks] = useState([]);
   const [ipLogs, setIpLogs] = useState([]);
@@ -32,10 +32,11 @@ export default function SecuritySettingsPage() {
   const [logFilter, setLogFilter] = useState({ allowed: '', action: '' });
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) { router.push('/login'); return; }
     if (user.role !== 'admin') { router.push('/dashboard'); return; }
     loadData();
-  }, [user, router]);
+  }, [user, router, authLoading]);
 
   const loadData = async () => {
     try {

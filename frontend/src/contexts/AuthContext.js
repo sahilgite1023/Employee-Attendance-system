@@ -20,15 +20,31 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     try {
-      const token = Cookies.get('token');
-      const savedUser = Cookies.get('user');
+      // Try cookie first, then localStorage fallback
+      let token = Cookies.get('token');
+      let savedUser = Cookies.get('user');
+
+      // Fallback: restore from localStorage if cookies are missing
+      if (!token && typeof window !== 'undefined') {
+        token = localStorage.getItem('authToken');
+        savedUser = localStorage.getItem('authUser');
+        // Re-sync back to cookies if found in localStorage
+        if (token && savedUser) {
+          Cookies.set('token', token, { expires: 7 });
+          Cookies.set('user', savedUser, { expires: 7 });
+        }
+      }
       
       if (token && savedUser) {
-        // Set user from cookie immediately for instant UI
+        // Set user from saved data immediately for instant UI
         try {
-          setUser(JSON.parse(savedUser));
+          const parsed = JSON.parse(savedUser);
+          setUser(parsed);
         } catch (e) {
           console.error('Failed to parse saved user:', e);
+          clearAuthData();
+          setLoading(false);
+          return;
         }
         // Set loading false immediately — don't wait for network
         setLoading(false);
@@ -38,13 +54,18 @@ export function AuthProvider({ children }) {
           .then((response) => {
             if (response.data) {
               setUser(response.data);
-              Cookies.set('user', JSON.stringify(response.data), { expires: 7 });
+              persistAuthUser(response.data);
             }
           })
-          .catch(() => {
-            console.warn('Background auth verification failed, using cached data');
+          .catch((err) => {
+            // Only clear if it's a definitive 401, not a network error
+            if (err?.response?.status === 401 || err?.status === 401) {
+              clearAuthData();
+              setUser(null);
+            }
+            // For network errors, keep using cached data
           });
-        return; // skip finally setLoading
+        return;
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -52,16 +73,42 @@ export function AuthProvider({ children }) {
     setLoading(false);
   };
 
+  /** Persist auth data to both cookies and localStorage */
+  const persistAuthData = (token, userData, expireDays = 7) => {
+    Cookies.set('token', token, { expires: expireDays });
+    Cookies.set('user', JSON.stringify(userData), { expires: expireDays });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('authUser', JSON.stringify(userData));
+    }
+  };
+
+  /** Persist just the user data (e.g. after background refresh) */
+  const persistAuthUser = (userData) => {
+    Cookies.set('user', JSON.stringify(userData), { expires: 7 });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('authUser', JSON.stringify(userData));
+    }
+  };
+
+  /** Clear all auth data from cookies and localStorage */
+  const clearAuthData = () => {
+    Cookies.remove('token');
+    Cookies.remove('user');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+    }
+  };
+
   const login = async (employeeId, password, rememberMe = false) => {
     const response = await authAPI.login({ employeeId, password });
     const { token, user } = response.data;
 
-    // Set cookie expiration based on "Remember me" checkbox
-    // If "Remember me" is checked: 30 days, otherwise: 1 day (session-like)
+    // Set expiration based on "Remember me" checkbox
     const cookieExpiration = rememberMe ? 30 : 1;
 
-    Cookies.set('token', token, { expires: cookieExpiration });
-    Cookies.set('user', JSON.stringify(user), { expires: cookieExpiration });
+    persistAuthData(token, user, cookieExpiration);
     setUser(user);
 
     // Redirect based on role — use replace to avoid back-button loop
@@ -80,11 +127,8 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      Cookies.remove('token');
-      Cookies.remove('user');
+      clearAuthData();
       setUser(null);
-      // Note: We don't remove 'rememberedEmployeeId' and 'rememberMe' from localStorage
-      // so that the employee ID can be auto-filled on next login if they want
       router.push('/login');
     }
   };
@@ -92,7 +136,7 @@ export function AuthProvider({ children }) {
   const updateUser = (updatedData) => {
     const updatedUser = { ...user, ...updatedData };
     setUser(updatedUser);
-    Cookies.set('user', JSON.stringify(updatedUser), { expires: 7 });
+    persistAuthUser(updatedUser);
   };
 
   const value = {

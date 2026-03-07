@@ -13,7 +13,7 @@ import Loader from '@/components/common/Loader';
 
 export default function AdminLeavesPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [filter, setFilter] = useState('pending');
@@ -22,6 +22,7 @@ export default function AdminLeavesPage() {
   const [processingId, setProcessingId] = useState(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
       return;
@@ -33,7 +34,7 @@ export default function AdminLeavesPage() {
     }
 
     loadLeaveRequests();
-  }, [user, router, filter]);
+  }, [user, router, authLoading, filter]);
 
   const loadLeaveRequests = async () => {
     try {

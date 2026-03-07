@@ -14,10 +14,11 @@ import EmptyState from '@/components/common/EmptyState';
 import Alert from '@/components/common/Alert';
 import Modal from '@/components/common/Modal';
 import LiveClock from '@/components/common/LiveClock';
+import WorkingTimer from '@/components/common/WorkingTimer';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [leaveBalance, setLeaveBalance] = useState(null);
@@ -28,8 +29,10 @@ export default function DashboardPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [confirmAction, setConfirmAction] = useState(null); // 'checkin' | 'checkout' | null
+  const [currentSession, setCurrentSession] = useState(null); // live session data for timer
 
   useEffect(() => {
+    if (authLoading) return; // Wait for auth check to complete
     if (!user) {
       router.push('/login');
       return;
@@ -41,16 +44,17 @@ export default function DashboardPage() {
     }
 
     loadDashboardData();
-  }, [user, router]);
+  }, [user, router, authLoading]);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [attendanceRes, balanceRes, historyRes, statsRes] = await Promise.allSettled([
+      const [attendanceRes, balanceRes, historyRes, statsRes, sessionRes] = await Promise.allSettled([
         attendanceAPI.getTodayAttendance(),
         leaveAPI.getBalance(),
         attendanceAPI.getHistory({ limit: 5 }),
         attendanceAPI.getStats(),
+        attendanceAPI.getCurrentSession(),
       ]);
 
       if (attendanceRes.status === 'fulfilled') {
@@ -72,6 +76,11 @@ export default function DashboardPage() {
         setStats(statsRes.value?.data || null);
       } else {
         console.error('getStats failed:', statsRes.reason);
+      }
+      if (sessionRes.status === 'fulfilled') {
+        setCurrentSession(sessionRes.value?.data || null);
+      } else {
+        console.error('getCurrentSession failed:', sessionRes.reason);
       }
     } catch (error) {
       console.error('Failed to load dashboard:', error);
@@ -236,89 +245,100 @@ export default function DashboardPage() {
 
         {/* Check-in/Check-out Section */}
         <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Today's Attendance
-              </h2>
-              {hasCheckedIn ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <svg className="w-5 h-5 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  Today's Attendance
+                </h2>
+                {hasCheckedIn ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <svg className="w-5 h-5 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="font-medium">Check-in:</span>
+                      <span className="font-semibold text-primary-700">{formatTime(todayAttendance.check_in_time)}</span>
+                    </div>
+                    {hasCheckedOut && (
+                      <>
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <svg className="w-5 h-5 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="font-medium">Check-out:</span>
+                          <span className="font-semibold text-primary-700">{formatTime(todayAttendance.check_out_time)}</span>
+                        </div>
+                        {todayAttendance.total_hours && (
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <svg className="w-5 h-5 text-info-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="font-medium">Total Hours:</span>
+                            <span className="font-semibold text-primary-700">{todayAttendance.total_hours}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-600">
+                    You haven't checked in today. Click the button to mark your attendance.
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-3">
+                {!hasCheckedIn && (
+                  <Button
+                    variant="success"
+                    size="lg"
+                    onClick={() => setConfirmAction('checkin')}
+                    loading={checkInLoading}
+                    disabled={checkInLoading}
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                      </svg>
+                    }
+                  >
+                    Check In
+                  </Button>
+                )}
+                {hasCheckedIn && !hasCheckedOut && (
+                  <Button
+                    variant="danger"
+                    size="lg"
+                    onClick={() => setConfirmAction('checkout')}
+                    loading={checkOutLoading}
+                    disabled={checkOutLoading}
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                    }
+                  >
+                    Check Out
+                  </Button>
+                )}
+                {hasCheckedOut && (
+                  <div className="flex items-center gap-2 px-6 py-3 bg-success-100 border border-success-200 rounded-lg">
+                    <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="font-medium">Check-in:</span>
-                    <span className="font-semibold text-primary-700">{formatTime(todayAttendance.check_in_time)}</span>
+                    <span className="font-semibold text-success-700">Day Complete</span>
                   </div>
-                  {hasCheckedOut && (
-                    <>
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <svg className="w-5 h-5 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="font-medium">Check-out:</span>
-                        <span className="font-semibold text-primary-700">{formatTime(todayAttendance.check_out_time)}</span>
-                      </div>
-                      {todayAttendance.total_hours && (
-                        <div className="flex items-center gap-2 text-gray-700">
-                          <svg className="w-5 h-5 text-info-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className="font-medium">Total Hours:</span>
-                          <span className="font-semibold text-primary-700">{todayAttendance.total_hours}</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              ) : (
-                <p className="text-gray-600">
-                  You haven't checked in today. Click the button to mark your attendance.
-                </p>
-              )}
+                )}
+              </div>
             </div>
-            <div className="flex gap-3">
-              {!hasCheckedIn && (
-                <Button
-                  variant="success"
-                  size="lg"
-                  onClick={() => setConfirmAction('checkin')}
-                  loading={checkInLoading}
-                  disabled={checkInLoading}
-                  icon={
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                    </svg>
-                  }
-                >
-                  Check In
-                </Button>
-              )}
-              {hasCheckedIn && !hasCheckedOut && (
-                <Button
-                  variant="danger"
-                  size="lg"
-                  onClick={() => setConfirmAction('checkout')}
-                  loading={checkOutLoading}
-                  disabled={checkOutLoading}
-                  icon={
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                  }
-                >
-                  Check Out
-                </Button>
-              )}
-              {hasCheckedOut && (
-                <div className="flex items-center gap-2 px-6 py-3 bg-success-100 border border-success-200 rounded-lg">
-                  <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="font-semibold text-success-700">Completed</span>
-                </div>
-              )}
-            </div>
+
+            {/* Live Working Timer */}
+            {hasCheckedIn && !hasCheckedOut && currentSession?.sessionStatus === 'OPEN' && (
+              <WorkingTimer
+                checkInTime={currentSession.session?.check_in_time || todayAttendance.check_in_time}
+                serverDurationSeconds={currentSession.liveDurationSeconds || 0}
+                serverTime={currentSession.serverTime}
+              />
+            )}
           </div>
         </Card>
 

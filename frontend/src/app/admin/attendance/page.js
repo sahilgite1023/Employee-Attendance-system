@@ -14,7 +14,7 @@ import Loader from '@/components/common/Loader';
 
 export default function AdminAttendancePage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [filters, setFilters] = useState({
@@ -25,6 +25,7 @@ export default function AdminAttendancePage() {
   const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
       return;
@@ -36,7 +37,7 @@ export default function AdminAttendancePage() {
     }
 
     loadAttendance();
-  }, [user, router, filters]);
+  }, [user, router, authLoading, filters]);
 
   const loadAttendance = async () => {
     try {

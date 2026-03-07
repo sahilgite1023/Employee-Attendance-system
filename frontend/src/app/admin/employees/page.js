@@ -14,7 +14,7 @@ import Loader from '@/components/common/Loader';
 
 export default function AdminEmployeesPage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -50,6 +50,7 @@ export default function AdminEmployeesPage() {
   };
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
       return;
@@ -61,7 +62,7 @@ export default function AdminEmployeesPage() {
     }
 
     loadEmployees();
-  }, [user, router]);
+  }, [user, router, authLoading]);
 
   const loadEmployees = async () => {
     try {

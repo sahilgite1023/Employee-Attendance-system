@@ -16,7 +16,7 @@ import AttendanceDonut from '@/components/common/AttendanceDonut';
 
 export default function AttendancePage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [attendance, setAttendance] = useState([]);
   const [allRecords, setAllRecords] = useState([]);
@@ -35,6 +35,7 @@ export default function AttendancePage() {
   });
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
       return;
@@ -42,7 +43,7 @@ export default function AttendancePage() {
     loadAttendanceData();
     loadStats();
     loadAllRecordsForCalendar();
-  }, [user, router, filters, pagination.page]);
+  }, [user, router, authLoading, filters, pagination.page]);
 
   const loadAttendanceData = async () => {
     try {

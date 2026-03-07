@@ -4,6 +4,7 @@ const {
   checkIn,
   checkOut,
   getTodayAttendance,
+  getCurrentSession,
   getAttendanceHistory,
   getAttendanceStats,
   getAllAttendance,
@@ -34,6 +35,14 @@ router.post('/check-out', protect, dbIpRestriction('CHECK_OUT'), checkOut);
  * @note    No IP restriction applied
  */
 router.get('/today', protect, getTodayAttendance);
+
+/**
+ * @route   GET /api/attendance/current-session
+ * @desc    Get active session for live timer
+ * @access  Private (Employee)
+ * @note    No IP restriction applied
+ */
+router.get('/current-session', protect, getCurrentSession);
 
 /**
  * @route   GET /api/attendance/history

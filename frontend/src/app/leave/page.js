@@ -14,7 +14,7 @@ import Loader from '@/components/common/Loader';
 
 export default function LeavePage() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [showApplyForm, setShowApplyForm] = useState(false);
   const [leaveRequests, setLeaveRequests] = useState([]);
@@ -30,12 +30,13 @@ export default function LeavePage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
       return;
     }
     loadLeaveData();
-  }, [user, router]);
+  }, [user, router, authLoading]);
 
   const loadLeaveData = async () => {
     try {
