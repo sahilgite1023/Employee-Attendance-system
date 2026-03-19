@@ -3,6 +3,20 @@ import Cookies from 'js-cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+const clearStoredAuth = () => {
+  Cookies.remove('token');
+  Cookies.remove('user');
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
+  }
+};
+
+const isPublicAuthEndpoint = (url = '') =>
+  ['/auth/login', '/auth/forgot-password', '/auth/reset-password'].some((path) =>
+    url.includes(path)
+  );
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,
@@ -34,22 +48,38 @@ api.interceptors.response.use(
   (response) => response.data,
   (error) => {
     if (error.response) {
+      const status = error.response.status;
+      const requestUrl = error.config?.url || '';
+
       // Handle IP restriction error
       if (error.response.data?.code === 'IP_RESTRICTED') {
         window.location.href = '/restricted';
         return Promise.reject(error);
       }
 
-      // Handle unauthorized errors
-      if (error.response.status === 401) {
-        Cookies.remove('token');
-        Cookies.remove('user');
-        if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+      // Handle unauthorized errors without creating auth loops.
+      // We only force logout for session-validation failures, not all auth endpoints.
+      if (status === 401) {
+        const isSessionFailure = requestUrl.includes('/auth/me') || requestUrl.includes('/auth/logout');
+        if (isSessionFailure) {
+          clearStoredAuth();
+        }
+
+        if (
+          isSessionFailure &&
+          typeof window !== 'undefined' &&
+          !window.location.pathname.includes('/login')
+        ) {
           window.location.href = '/login';
         }
       }
 
-      return Promise.reject(error.response.data);
+      return Promise.reject({
+        ...(error.response.data || {}),
+        status,
+        url: requestUrl,
+        isPublicAuthEndpoint: isPublicAuthEndpoint(requestUrl),
+      });
     }
     return Promise.reject(error);
   }
@@ -112,6 +142,13 @@ export const adminAPI = {
   deleteNetwork: (id) => api.delete(`/admin/networks/${id}`),
   toggleNetwork: (id) => api.patch(`/admin/networks/${id}/toggle`),
   getIpLogs: (params) => api.get('/admin/ip-logs', { params }),
+
+  // Settings
+  getSettings: (params) => api.get('/admin/settings', { params }),
+  getSettingByKey: (key) => api.get(`/admin/settings/${key}`),
+  updateSetting: (key, value) => api.put(`/admin/settings/${key}`, { value }),
+  bulkUpdateSettings: (settings) => api.put('/admin/settings-bulk/update', { settings }),
+  resetSettings: () => api.post('/admin/settings/reset'),
 };
 
 export default api;

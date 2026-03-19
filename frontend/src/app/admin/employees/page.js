@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { adminAPI } from '@/lib/api';
+import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
@@ -14,7 +14,7 @@ import Loader from '@/components/common/Loader';
 
 export default function AdminEmployeesPage() {
   const router = useRouter();
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -25,28 +25,27 @@ export default function AdminEmployeesPage() {
     phone: '',
     designation: '',
     department: '',
-    roleId: '3', // Default to employee role
+    roleId: '3',
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Department to Designation mapping
   const departmentDesignations = {
-    'Engineering': ['Software Engineer', 'Senior Software Engineer', 'Lead Developer', 'Engineering Manager', 'System Architect', 'Tech Lead'],
-    'Development': ['Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'Senior Developer', 'Development Lead'],
-    'Quality Assurance': ['QA Engineer', 'Senior QA Engineer', 'QA Lead', 'Test Automation Engineer', 'QA Manager'],
-    'DevOps': ['DevOps Engineer', 'Senior DevOps Engineer', 'DevOps Lead', 'Site Reliability Engineer', 'Cloud Engineer'],
-    'Human Resources': ['HR Manager', 'HR Executive', 'HR Generalist', 'Talent Acquisition Specialist', 'HR Business Partner'],
-    'Finance': ['Accountant', 'Senior Accountant', 'Finance Manager', 'Financial Analyst', 'Controller'],
-    'Marketing': ['Marketing Manager', 'Marketing Executive', 'Digital Marketing Specialist', 'Content Strategist', 'SEO Specialist'],
-    'Sales': ['Sales Manager', 'Sales Executive', 'Account Manager', 'Business Development Manager', 'Sales Representative'],
-    'Operations': ['Operations Manager', 'Operations Executive', 'Operations Coordinator', 'Process Manager'],
-    'Customer Support': ['Support Engineer', 'Senior Support Engineer', 'Support Manager', 'Customer Success Manager'],
-    'Product Management': ['Product Manager', 'Senior Product Manager', 'Product Owner', 'Associate Product Manager'],
-    'Design': ['UI/UX Designer', 'Senior Designer', 'Design Lead', 'Graphic Designer', 'Product Designer'],
-    'Administration': ['Admin Manager', 'Administrative Assistant', 'Office Manager', 'Executive Assistant'],
+    'Engineering': ['Software Engineer', 'Senior Software Engineer', 'Lead Developer', 'Engineering Manager'],
+    'Development': ['Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'Senior Developer'],
+    'Quality Assurance': ['QA Engineer', 'Senior QA Engineer', 'QA Lead', 'Test Automation Engineer'],
+    'DevOps': ['DevOps Engineer', 'Senior DevOps Engineer', 'DevOps Lead', 'Site Reliability Engineer'],
+    'Human Resources': ['HR Manager', 'HR Executive', 'HR Generalist', 'Talent Acquisition Specialist'],
+    'Finance': ['Accountant', 'Senior Accountant', 'Finance Manager', 'Financial Analyst'],
+    'Marketing': ['Marketing Manager', 'Marketing Executive', 'Digital Marketing Specialist'],
+    'Sales': ['Sales Manager', 'Sales Executive', 'Account Manager', 'Business Development Manager'],
+    'Operations': ['Operations Manager', 'Operations Executive', 'Operations Coordinator'],
+    'Customer Support': ['Support Engineer', 'Senior Support Engineer', 'Support Manager'],
+    'Product Management': ['Product Manager', 'Senior Product Manager', 'Product Owner'],
+    'Design': ['UI/UX Designer', 'Senior Designer', 'Design Lead', 'Graphic Designer'],
+    'Administration': ['Admin Manager', 'Administrative Assistant', 'Office Manager'],
   };
 
   useEffect(() => {
@@ -211,91 +210,46 @@ export default function AdminEmployeesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader />
-      </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center py-12">
+          <Loader />
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Employee Management
-            </h1>
-            <div className="flex items-center space-x-4">
-              <Link href="/admin/dashboard">
-                <Button variant="outline">Back to Dashboard</Button>
-              </Link>
-              <Button variant="outline" onClick={logout}>
-                Logout
-              </Button>
-            </div>
-          </div>
-          
-          {/* Admin Navigation Bar */}
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-4">
-            <Link href="/admin/dashboard">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📊 Dashboard</Button>
-            </Link>
-            <Link href="/admin/employees">
-              <Button variant="primary" size="sm" className="text-xs sm:text-sm">👥 Employees</Button>
-            </Link>
-            <Link href="/admin/attendance">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📋 Attendance</Button>
-            </Link>
-            <Link href="/admin/leaves">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">🌴 Leaves</Button>
-            </Link>
-            <Link href="/admin/reports">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📊 Reports</Button>
-            </Link>
-            <Link href="/admin/security">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">🔒 Security</Button>
-            </Link>
-          </div>
+    <AdminLayout>
+      {successMessage && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-700 whitespace-pre-line font-semibold">{successMessage}</p>
         </div>
-      </header>
+      )}
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Success/Error Messages */}
-        {successMessage && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-700 whitespace-pre-line font-semibold">{successMessage}</p>
-          </div>
-        )}
-
-        {errorMessage && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">{errorMessage}</p>
-          </div>
-        )}
+      {errorMessage && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-sm text-red-700">{errorMessage}</p>
+        </div>
+      )}
 
         {/* Search and Add Button */}
         <div className="flex justify-between items-center mb-6">
-          <div className="w-64">
-            <Input
-              type="text"
-              placeholder="Search employees..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <Input
+            type="text"
+            placeholder="Search employees..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-64"
+          />
           <Button variant="primary" onClick={() => setShowCreateModal(true)}>
-            Add New Employee
+            Add Employee
           </Button>
         </div>
 
         {/* Create Employee Modal */}
         {showCreateModal && (
           <Card className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Add New Employee
-            </h2>
+            <h2 className="text-lg font-semibold mb-4">Add New Employee</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
@@ -432,8 +386,8 @@ export default function AdminEmployeesPage() {
 
         {/* Employees Table */}
         <Card>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            All Employees ({filteredEmployees.length})
+          <h2 className="text-lg font-semibold mb-4">
+            Employees ({filteredEmployees.length})
           </h2>
 
           <div className="overflow-x-auto">

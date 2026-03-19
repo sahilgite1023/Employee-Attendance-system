@@ -2,7 +2,8 @@ const db = require('../config/database');
 const { sendSuccess, sendError } = require('../utils/response');
 const { createAuditLog } = require('../middleware/auditLog');
 const { calculateBusinessDays } = require('../utils/helpers');
-const { ANNUAL_PAID_LEAVES } = require('../config/config');
+const config = require('../config/config');
+const { getSettingsWithDefaults } = require('../utils/settingsCache');
 
 /**
  * @route   POST /api/leave/apply
@@ -145,10 +146,13 @@ exports.getLeaveBalance = async (req, res, next) => {
     );
 
     const balance = result.rows[0];
+    
+    // Get settings from database with fallback to config
+    const settings = await getSettingsWithDefaults(config);
 
     sendSuccess(res, 'Leave balance retrieved', {
       paidLeavesBalance: balance.paid_leaves_balance,
-      paidLeavesTotal: ANNUAL_PAID_LEAVES,
+      paidLeavesTotal: settings.ANNUAL_PAID_LEAVES,
       unpaidLeavesTaken: balance.unpaid_leaves_taken,
       pendingRequests: parseInt(balance.pending_requests),
       approvedRequests: parseInt(balance.approved_requests),

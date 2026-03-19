@@ -8,12 +8,8 @@ const {
   parseTimeString,
   isWeekend,
 } = require('../utils/helpers');
-const {
-  CHECK_IN_START_TIME,
-  LATE_THRESHOLD_MINUTES,
-  HALF_DAY_HOURS,
-  FULL_DAY_HOURS,
-} = require('../config/config');
+const config = require('../config/config');
+const { getSettingsWithDefaults } = require('../utils/settingsCache');
 
 /**
  * @route   POST /api/attendance/check-in
@@ -39,11 +35,14 @@ exports.checkIn = async (req, res, next) => {
       return sendError(res, 'You have already checked in today', 400);
     }
 
+    // Get settings from database with fallback to config
+    const settings = await getSettingsWithDefaults(config);
+
     // Get check-in time
     const checkInTime = new Date();
     
     // Calculate if late
-    const startTime = parseTimeString(CHECK_IN_START_TIME);
+    const startTime = parseTimeString(settings.CHECK_IN_START_TIME);
     const thresholdTime = new Date(checkInTime);
     thresholdTime.setHours(startTime.hours, startTime.minutes, 0, 0);
     
@@ -52,7 +51,7 @@ exports.checkIn = async (req, res, next) => {
     
     // Determine status
     let status = 'present';
-    if (isLateCheckin && lateByMinutes > LATE_THRESHOLD_MINUTES) {
+    if (isLateCheckin && lateByMinutes > settings.LATE_THRESHOLD_MINUTES) {
       status = 'late';
     }
 
@@ -101,15 +100,18 @@ exports.checkOut = async (req, res, next) => {
       return sendError(res, 'You have already checked out today', 400);
     }
 
+    // Get settings from database with fallback to config
+    const settings = await getSettingsWithDefaults(config);
+
     // Calculate hours worked
     const checkOutTime = new Date();
     const totalHours = calculateHours(attendance.check_in_time, checkOutTime);
 
     // Determine status based on hours
     let status = attendance.status;
-    if (totalHours < HALF_DAY_HOURS) {
+    if (totalHours < settings.HALF_DAY_HOURS) {
       status = 'half-day';
-    } else if (totalHours >= FULL_DAY_HOURS) {
+    } else if (totalHours >= settings.FULL_DAY_HOURS) {
       status = 'present';
     }
 

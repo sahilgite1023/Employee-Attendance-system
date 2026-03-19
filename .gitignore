@@ -32,3 +32,4 @@ yarn-debug.log*
 *.pem
 tmp/
 temp/
+details.md

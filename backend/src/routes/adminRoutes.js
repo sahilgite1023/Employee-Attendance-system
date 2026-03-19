@@ -22,6 +22,13 @@ const {
   toggleNetwork,
   getIpAccessLogs,
 } = require('../controllers/networkController');
+const {
+  getAllSettings,
+  getSettingByKey,
+  updateSetting,
+  bulkUpdateSettings,
+  resetToDefaults,
+} = require('../controllers/settingsController');
 const { protect, authorize } = require('../middleware/auth');
 
 // All routes require admin role
@@ -163,5 +170,49 @@ router.patch('/networks/:id/toggle', toggleNetwork);
  * @access  Private (Admin)
  */
 router.get('/ip-logs', getIpAccessLogs);
+
+// ============================================
+// SETTINGS ROUTES
+// ============================================
+
+/**
+ * @route   GET /api/admin/settings
+ * @desc    Get all system settings
+ * @access  Private (Admin)
+ */
+router.get('/settings', getAllSettings);
+
+/**
+ * @route   GET /api/admin/settings/:key
+ * @desc    Get a specific setting by key
+ * @access  Private (Admin)
+ */
+router.get('/settings/:key', getSettingByKey);
+
+/**
+ * @route   PUT /api/admin/settings/:key
+ * @desc    Update a specific setting
+ * @access  Private (Admin)
+ */
+router.put(
+  '/settings/:key',
+  [body('value').notEmpty().withMessage('Setting value is required')],
+  validate,
+  updateSetting
+);
+
+/**
+ * @route   PUT /api/admin/settings/bulk
+ * @desc    Update multiple settings at once
+ * @access  Private (Admin)
+ */
+router.put('/settings-bulk/update', bulkUpdateSettings);
+
+/**
+ * @route   POST /api/admin/settings/reset
+ * @desc    Reset all settings to default values
+ * @access  Private (Admin)
+ */
+router.post('/settings/reset', resetToDefaults);
 
 module.exports = router;
