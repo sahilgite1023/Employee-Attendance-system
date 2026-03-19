@@ -249,7 +249,7 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="flex-1">
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  Today's Attendance
+                  Today&apos;s Attendance
                 </h2>
                 {hasCheckedIn ? (
                   <div className="space-y-2">
@@ -283,7 +283,7 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <p className="text-gray-600">
-                    You haven't checked in today. Click the button to mark your attendance.
+                    You haven&apos;t checked in today. Click the button to mark your attendance.
                   </p>
                 )}
               </div>

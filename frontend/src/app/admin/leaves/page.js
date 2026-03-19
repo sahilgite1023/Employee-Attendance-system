@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { leaveAPI } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
+import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
@@ -13,298 +13,137 @@ import Loader from '@/components/common/Loader';
 
 export default function AdminLeavesPage() {
   const router = useRouter();
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [leaveRequests, setLeaveRequests] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [filter, setFilter] = useState('pending');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [processingId, setProcessingId] = useState(null);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [processing, setProcessing] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      router.push('/login');
+    if (!user || user.role !== 'admin') {
+      router.push(user ? '/dashboard' : '/login');
       return;
     }
-
-    if (user.role !== 'admin') {
-      router.push('/dashboard');
-      return;
-    }
-
-    loadLeaveRequests();
+    loadRequests();
   }, [user, router, authLoading, filter]);
 
-  const loadLeaveRequests = async () => {
+  const loadRequests = async () => {
     try {
       setLoading(true);
       const response = await leaveAPI.getAllRequests({ status: filter });
-      setLeaveRequests(response.data);
+      setRequests(response.data);
     } catch (error) {
-      console.error('Failed to load leave requests:', error);
+      console.error('Failed to load requests:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleReview = async (id, status, reviewNotes = '') => {
-    setSuccessMessage('');
-    setErrorMessage('');
-    setProcessingId(id);
-
+  const handleReview = async (id, status, notes = '') => {
+    setMessage({ type: '', text: '' });
+    setProcessing(id);
     try {
-      await leaveAPI.review(id, { status, reviewNotes });
-      setSuccessMessage(
-        `Leave request ${status === 'approved' ? 'approved' : 'rejected'} successfully!`
-      );
-      await loadLeaveRequests();
+      await leaveAPI.review(id, { status, reviewNotes: notes });
+      setMessage({ type: 'success', text: `Leave ${status} successfully!` });
+      loadRequests();
     } catch (error) {
-      setErrorMessage(
-        error.message || `Failed to ${status} leave request`
-      );
+      setMessage({ type: 'error', text: error.message || `Failed to ${status} leave` });
     } finally {
-      setProcessingId(null);
+      setProcessing(null);
     }
   };
 
   const handleApprove = (id) => {
-    if (confirm('Are you sure you want to approve this leave request?')) {
+    if (confirm('Approve this leave request?')) {
       handleReview(id, 'approved');
     }
   };
 
   const handleReject = (id) => {
-    const reason = prompt('Please provide a reason for rejection:');
-    if (reason && reason.trim()) {
+    const reason = prompt('Rejection reason:');
+    if (reason?.trim()) {
       handleReview(id, 'rejected', reason);
     } else if (reason !== null) {
-      alert('Rejection reason is required');
+      alert('Reason required');
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader />
-      </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center py-12">
+          <Loader />
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Leave Management
-            </h1>
-            <div className="flex items-center space-x-4">
-              <Link href="/admin/dashboard">
-                <Button variant="outline">Back to Dashboard</Button>
-              </Link>
-              <Button variant="outline" onClick={logout}>
-                Logout
-              </Button>
-            </div>
-          </div>
-          
-          {/* Admin Navigation Bar */}
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-4">
-            <Link href="/admin/dashboard">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📊 Dashboard</Button>
-            </Link>
-            <Link href="/admin/employees">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">👥 Employees</Button>
-            </Link>
-            <Link href="/admin/attendance">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📋 Attendance</Button>
-            </Link>
-            <Link href="/admin/leaves">
-              <Button variant="primary" size="sm" className="text-xs sm:text-sm">🌴 Leaves</Button>
-            </Link>
-            <Link href="/admin/reports">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">📊 Reports</Button>
-            </Link>
-            <Link href="/admin/security">
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">🔒 Security</Button>
-            </Link>
-          </div>
+    <AdminLayout>
+      {message.text && (
+        <div className={`mb-4 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          <p className="text-sm">{message.text}</p>
         </div>
-      </header>
+      )}
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Success/Error Messages */}
-        {successMessage && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-700">{successMessage}</p>
-          </div>
-        )}
+      <div className="flex gap-4 mb-6">
+        <Button variant={filter === 'pending' ? 'primary' : 'outline'} onClick={() => setFilter('pending')}>Pending</Button>
+        <Button variant={filter === 'approved' ? 'primary' : 'outline'} onClick={() => setFilter('approved')}>Approved</Button>
+        <Button variant={filter === 'rejected' ? 'primary' : 'outline'} onClick={() => setFilter('rejected')}>Rejected</Button>
+        <Button variant={filter === '' ? 'primary' : 'outline'} onClick={() => setFilter('')}>All</Button>
+      </div>
 
-        {errorMessage && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">{errorMessage}</p>
-          </div>
-        )}
-
-        {/* Filter Tabs */}
-        <div className="flex space-x-4 mb-6">
-          <Button
-            variant={filter === 'pending' ? 'primary' : 'outline'}
-            onClick={() => setFilter('pending')}
-          >
-            Pending
-          </Button>
-          <Button
-            variant={filter === 'approved' ? 'primary' : 'outline'}
-            onClick={() => setFilter('approved')}
-          >
-            Approved
-          </Button>
-          <Button
-            variant={filter === 'rejected' ? 'primary' : 'outline'}
-            onClick={() => setFilter('rejected')}
-          >
-            Rejected
-          </Button>
-          <Button
-            variant={filter === '' ? 'primary' : 'outline'}
-            onClick={() => setFilter('')}
-          >
-            All
-          </Button>
-        </div>
-
-        {/* Leave Requests Table */}
-        <Card>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Leave Requests ({leaveRequests.length})
-          </h2>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Employee
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Start Date
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    End Date
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Days
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Type
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Reason
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Status
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {leaveRequests.length === 0 ? (
-                  <tr>
-                    <td colSpan="8" className="text-center py-12 text-gray-500">
-                      No leave requests found
+      <Card>
+        <h3 className="text-lg font-semibold mb-4">Leave Requests ({requests.length})</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2 px-3">Employee</th>
+                <th className="text-left py-2 px-3">Start</th>
+                <th className="text-left py-2 px-3">End</th>
+                <th className="text-left py-2 px-3">Days</th>
+                <th className="text-left py-2 px-3">Type</th>
+                <th className="text-left py-2 px-3">Reason</th>
+                <th className="text-left py-2 px-3">Status</th>
+                <th className="text-left py-2 px-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {requests.length === 0 ? (
+                <tr><td colSpan="8" className="text-center py-8 text-gray-500">No requests found</td></tr>
+              ) : (
+                requests.map(r => (
+                  <tr key={r.id} className="border-b hover:bg-gray-50">
+                    <td className="py-2 px-3">
+                      <div className="font-medium">{r.employee_name}</div>
+                      <div className="text-xs text-gray-500">{r.employee_id}</div>
+                    </td>
+                    <td className="py-2 px-3">{formatDate(r.start_date)}</td>
+                    <td className="py-2 px-3">{formatDate(r.end_date)}</td>
+                    <td className="py-2 px-3">{r.total_days}</td>
+                    <td className="py-2 px-3"><Badge variant={r.leave_type === 'paid' ? 'success' : 'warning'}>{r.leave_type}</Badge></td>
+                    <td className="py-2 px-3 max-w-xs truncate" title={r.reason}>{r.reason}</td>
+                    <td className="py-2 px-3"><Badge variant={r.status}>{r.status}</Badge></td>
+                    <td className="py-2 px-3">
+                      {r.status === 'pending' ? (
+                        <div className="flex gap-2">
+                          <Button variant="success" size="sm" onClick={() => handleApprove(r.id)} disabled={processing === r.id}>Approve</Button>
+                          <Button variant="danger" size="sm" onClick={() => handleReject(r.id)} disabled={processing === r.id}>Reject</Button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500">{r.reviewed_by_name || 'Reviewed'}</span>
+                      )}
                     </td>
                   </tr>
-                ) : (
-                  leaveRequests.map((request) => (
-                    <tr
-                      key={request.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-3 px-4 text-sm text-gray-900">
-                        <div>
-                          <p className="font-medium">{request.employee_name}</p>
-                          <p className="text-xs text-gray-500">
-                            {request.employee_id}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-900">
-                        {formatDate(request.start_date)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-900">
-                        {formatDate(request.end_date)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-900">
-                        {request.total_days}
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge
-                          variant={
-                            request.leave_type === 'paid' ? 'success' : 'warning'
-                          }
-                        >
-                          {request.leave_type}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-600 max-w-xs">
-                        <div className="truncate" title={request.reason}>
-                          {request.reason}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <Badge variant={request.status}>{request.status}</Badge>
-                        {request.status === 'rejected' &&
-                          request.rejection_reason && (
-                            <p
-                              className="text-xs text-red-600 mt-1 cursor-help"
-                              title={request.rejection_reason}
-                            >
-                              {request.rejection_reason.substring(0, 30)}...
-                            </p>
-                          )}
-                      </td>
-                      <td className="py-3 px-4">
-                        {request.status === 'pending' && (
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="success"
-                              size="sm"
-                              onClick={() => handleApprove(request.id)}
-                              disabled={processingId === request.id}
-                              loading={processingId === request.id}
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleReject(request.id)}
-                              disabled={processingId === request.id}
-                            >
-                              Reject
-                            </Button>
-                          </div>
-                        )}
-                        {request.status !== 'pending' && (
-                          <span className="text-xs text-gray-500">
-                            {request.reviewed_by && `By: ${request.reviewed_by}`}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </main>
-    </div>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </AdminLayout>
   );
 }
