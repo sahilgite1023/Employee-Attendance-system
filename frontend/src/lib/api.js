@@ -129,6 +129,7 @@ export const leaveAPI = {
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   getEmployees: (params) => api.get('/admin/employees', { params }),
+  getEmployeeById: (id) => api.get(`/admin/employees/${id}`),
   createEmployee: (data) => api.post('/admin/employees', data),
   updateEmployee: (id, data) => api.put(`/admin/employees/${id}`, data),
   deactivateEmployee: (id) => api.delete(`/admin/employees/${id}`),

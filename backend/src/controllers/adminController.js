@@ -100,7 +100,7 @@ exports.getAllEmployees = async (req, res, next) => {
       paramCount++;
     }
 
-    query += ' ORDER BY e.created_at DESC';
+    query += ' ORDER BY e.is_active DESC, e.created_at DESC';
 
     // Pagination
     const offset = (page - 1) * limit;
@@ -265,17 +265,31 @@ exports.createEmployee = async (req, res, next) => {
 exports.updateEmployee = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const updates = { ...req.body };
 
     if (updates.date_of_joining === '') {
       updates.date_of_joining = null;
     }
 
-    // Don't allow updating password, email, employee_id through this endpoint
+    // Only allow password changes through the plain-text password field so the
+    // login hash and admin-visible password stay aligned.
     delete updates.password_hash;
-    delete updates.password;
+    delete updates.temporary_password;
     delete updates.email;
     delete updates.employee_id;
+
+    if (Object.prototype.hasOwnProperty.call(updates, 'password')) {
+      const newPassword = updates.password;
+      delete updates.password;
+
+      if (typeof newPassword !== 'string' || newPassword.length < 6) {
+        return sendError(res, 'Password must be at least 6 characters long', 400);
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      updates.password_hash = await bcrypt.hash(newPassword, salt);
+      updates.temporary_password = newPassword;
+    }
 
     if (Object.keys(updates).length === 0) {
       return sendError(res, 'No fields to update', 400);
@@ -311,10 +325,15 @@ exports.updateEmployee = async (req, res, next) => {
       [id]
     );
 
+    const updatedEmployee = employeeWithRole.rows[0];
+    delete updatedEmployee.password_hash;
+    delete updatedEmployee.reset_password_token;
+    delete updatedEmployee.reset_password_expire;
+
     // Create audit log
     await createAuditLog(req.user.id, 'EMPLOYEE_UPDATED', 'employee', id, updates, req);
 
-    sendSuccess(res, 'Employee updated successfully', employeeWithRole.rows[0]);
+    sendSuccess(res, 'Employee updated successfully', updatedEmployee);
   } catch (error) {
     next(error);
   }

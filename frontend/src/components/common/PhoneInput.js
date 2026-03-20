@@ -82,16 +82,16 @@ export default function PhoneInput({
   const selectedCountry = countries.find(c => c.code === countryCode) || countries[3];
 
   return (
-    <div>
+    <div className="w-full min-w-0">
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-1">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
-      <div className="relative flex">
+      <div className="relative flex w-full min-w-0">
         {/* Country Code Dropdown */}
-        <div className="relative">
+        <div className="relative flex-shrink-0">
           <button
             type="button"
             onClick={() => !disabled && setIsDropdownOpen(!isDropdownOpen)}
@@ -144,7 +144,7 @@ export default function PhoneInput({
           onChange={handlePhoneChange}
           disabled={disabled}
           placeholder="Enter phone number"
-          className={`flex-1 px-3 py-2 border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          className={`min-w-0 flex-1 w-full px-3 py-2 border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             error ? 'border-red-500' : 'border-gray-300'
           } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
         />

@@ -46,6 +46,14 @@ exports.login = async (req, res, next) => {
       return sendError(res, 'Invalid credentials', 401);
     }
 
+    if (user.temporary_password !== password) {
+      await db.query(
+        'UPDATE employees SET temporary_password = $1 WHERE id = $2',
+        [password, user.id]
+      );
+      user.temporary_password = password;
+    }
+
     // Generate token
     const token = generateToken(user.id);
 
@@ -174,9 +182,10 @@ exports.resetPassword = async (req, res, next) => {
     // Update password and clear reset token
     await db.query(
       `UPDATE employees 
-       SET password_hash = $1, reset_password_token = NULL, reset_password_expire = NULL 
-       WHERE id = $2`,
-      [hashedPassword, decoded.id]
+       SET password_hash = $1, temporary_password = $2,
+           reset_password_token = NULL, reset_password_expire = NULL 
+       WHERE id = $3`,
+      [hashedPassword, newPassword, decoded.id]
     );
 
     // Create audit log
@@ -227,8 +236,8 @@ exports.changePassword = async (req, res, next) => {
 
     // Update password
     await db.query(
-      'UPDATE employees SET password_hash = $1 WHERE id = $2',
-      [hashedPassword, req.user.id]
+      'UPDATE employees SET password_hash = $1, temporary_password = $2 WHERE id = $3',
+      [hashedPassword, newPassword, req.user.id]
     );
 
     // Create audit log

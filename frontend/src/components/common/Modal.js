@@ -18,26 +18,21 @@ export default function Modal({
 
   return (
     <div 
-      className="fixed inset-0 z-50 overflow-y-auto"
+      className="fixed inset-0 z-50"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
     >
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        {/* Background overlay */}
-        <div 
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          aria-hidden="true"
-          onClick={closeOnOverlay ? onClose : undefined}
-        />
+      {/* Background overlay */}
+      <div 
+        className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+        aria-hidden="true"
+        onClick={closeOnOverlay ? onClose : undefined}
+      />
 
-        {/* Center modal */}
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
-          &#8203;
-        </span>
-
+      <div className="relative flex min-h-full items-center justify-center p-4 sm:p-6">
         {/* Modal panel */}
-        <div className={`inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-modal transform transition-all sm:my-8 sm:align-middle w-full ${sizeClasses[size]} animate-scale-in`}>
+        <div className={`relative w-full ${sizeClasses[size]} max-h-[calc(100vh-2rem)] bg-white rounded-xl text-left overflow-hidden shadow-modal transform transition-all flex flex-col animate-scale-in`}>
           {/* Header */}
           {title && (
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -57,7 +52,7 @@ export default function Modal({
           )}
 
           {/* Content */}
-          <div className="px-6 py-4">
+          <div className="px-6 py-4 overflow-y-auto">
             {children}
           </div>
 

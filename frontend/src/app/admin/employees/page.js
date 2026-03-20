@@ -35,13 +35,15 @@ export default function AdminEmployeesPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [loadingEmployeeId, setLoadingEmployeeId] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editModalLoading, setEditModalLoading] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState({ name: '', email: '', phone: '', designation: '', department: '', roleId: '3' });
-  const [editForm, setEditForm] = useState({ first_name: '', last_name: '', phone: '', designation: '', department: '', role_id: '', is_active: true });
+  const [editForm, setEditForm] = useState({ first_name: '', last_name: '', phone: '', designation: '', department: '', role_id: '', password: '', is_active: true });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -98,24 +100,45 @@ export default function AdminEmployeesPage() {
     }
   };
 
-  const handleEdit = (employee) => {
-    setEditingEmployee(employee);
-    setEditForm({
-      first_name: employee.first_name,
-      last_name: employee.last_name,
-      phone: employee.phone || '',
-      designation: employee.designation,
-      department: employee.department || '',
-      role_id: employee.role === 'admin' ? '1' : '3',
-      is_active: employee.is_active,
-    });
+  const handleEdit = async (employee) => {
+    setLoadingEmployeeId(employee.id);
+    setErrors({});
+    setEditModalLoading(true);
     setShowEditModal(true);
+
+    try {
+      const response = await adminAPI.getEmployeeById(employee.id);
+      const employeeDetails = response.data.employee;
+
+      setEditingEmployee(employeeDetails);
+      setEditForm({
+        first_name: employeeDetails.first_name,
+        last_name: employeeDetails.last_name,
+        phone: employeeDetails.phone || '',
+        designation: employeeDetails.designation,
+        department: employeeDetails.department || '',
+        role_id: employeeDetails.role === 'admin' ? '1' : '3',
+        password: employeeDetails.temporary_password || '',
+        is_active: employeeDetails.is_active,
+      });
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message || 'Failed to load employee details' });
+      setShowEditModal(false);
+    } finally {
+      setLoadingEmployeeId(null);
+      setEditModalLoading(false);
+    }
   };
 
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
-    if (!editForm.first_name || !editForm.last_name || !editForm.designation) {
-      setErrors({ first_name: !editForm.first_name, last_name: !editForm.last_name, designation: !editForm.designation });
+    if (!editForm.first_name || !editForm.last_name || !editForm.designation || (editForm.password && editForm.password.length < 6)) {
+      setErrors({
+        first_name: !editForm.first_name ? 'First name is required' : '',
+        last_name: !editForm.last_name ? 'Last name is required' : '',
+        designation: !editForm.designation ? 'Designation is required' : '',
+        password: editForm.password && editForm.password.length < 6 ? 'Password must be at least 6 characters long' : '',
+      });
       return;
     }
 
@@ -129,6 +152,7 @@ export default function AdminEmployeesPage() {
         designation: editForm.designation,
         department: editForm.department,
         role_id: editForm.role_id,
+        ...(editForm.password ? { password: editForm.password } : {}),
         is_active: editForm.is_active,
       });
 
@@ -162,9 +186,14 @@ export default function AdminEmployeesPage() {
     }
   };
 
-  const filtered = employees.filter(e => 
-    `${e.first_name} ${e.last_name} ${e.employee_id} ${e.email}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = employees
+    .filter((e) =>
+      `${e.first_name} ${e.last_name} ${e.employee_id} ${e.email}`.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (a.is_active === b.is_active) return 0;
+      return a.is_active ? -1 : 1;
+    });
 
   if (loading) {
     return (
@@ -184,18 +213,20 @@ export default function AdminEmployeesPage() {
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-6">
-        <Input
-          type="text"
-          placeholder="Search employees..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-64"
-        />
-        <Button onClick={() => setShowAddModal(true)}>+ Add Employee</Button>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="w-full sm:max-w-xs">
+          <Input
+            type="text"
+            placeholder="Search employees..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full"
+          />
+        </div>
+        <Button onClick={() => setShowAddModal(true)} className="sm:flex-none">+ Add Employee</Button>
       </div>
 
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add New Employee" size="lg">
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add New Employee" size="lg" closeOnOverlay={true}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Full Name" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} error={errors.name} required />
@@ -230,9 +261,25 @@ export default function AdminEmployeesPage() {
         </form>
       </Modal>
 
-      <Modal isOpen={showEditModal} onClose={() => { setShowEditModal(false); setEditingEmployee(null); }} title="Edit Employee Details" size="lg">
-        <form onSubmit={handleUpdateSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Modal isOpen={showEditModal} onClose={() => { setShowEditModal(false); setEditingEmployee(null); setEditModalLoading(false); }} title="Edit Employee Details" size="lg" closeOnOverlay={true}>
+        {editModalLoading ? (
+          <div className="flex min-h-[160px] items-center justify-center">
+            <Loader />
+          </div>
+        ) : (
+        <form onSubmit={handleUpdateSubmit} className="space-y-5">
+          {editingEmployee && (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <p className="text-sm font-medium text-gray-900">
+                {editingEmployee.first_name} {editingEmployee.last_name}
+              </p>
+              <p className="mt-1 text-xs text-gray-600">
+                {editingEmployee.employee_id} • {editingEmployee.email}
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
             <Input label="First Name" value={editForm.first_name} onChange={(e) => setEditForm({...editForm, first_name: e.target.value})} error={errors.first_name} required />
             <Input label="Last Name" value={editForm.last_name} onChange={(e) => setEditForm({...editForm, last_name: e.target.value})} error={errors.last_name} required />
             <PhoneInput label="Phone" value={editForm.phone} onChange={(e) => setEditForm({...editForm, phone: e.target.value})} />
@@ -257,11 +304,21 @@ export default function AdminEmployeesPage() {
                 <option value="3">Employee</option>
               </select>
             </div>
+            <div className="md:col-span-2">
+              <Input
+                label="Current Password"
+                type="password"
+                value={editForm.password}
+                onChange={(e) => setEditForm({...editForm, password: e.target.value})}
+                error={errors.password}
+                helpText="Admins can view and update the employee's current password here."
+              />
+            </div>
           </div>
 
           {/* Status Toggle */}
           <div className="pt-4 border-t">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Employee Status</label>
                 <p className="text-xs text-gray-500">Toggle to activate or deactivate this employee</p>
@@ -287,16 +344,17 @@ export default function AdminEmployeesPage() {
             </div>
           </div>
 
-          <div className="flex gap-4 justify-between pt-4 border-t">
-            <Button type="button" variant="danger" onClick={() => handleDeleteFromModal()} disabled={submitting}>
+          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <Button type="button" variant="danger" onClick={() => handleDeleteFromModal()} disabled={submitting} className="sm:flex-none">
               🗑️ Delete Permanently
             </Button>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => { setShowEditModal(false); setEditingEmployee(null); }}>Cancel</Button>
-              <Button type="submit" disabled={submitting}>{submitting ? 'Updating...' : 'Save Changes'}</Button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button type="button" variant="outline" onClick={() => { setShowEditModal(false); setEditingEmployee(null); }} className="sm:flex-none">Cancel</Button>
+              <Button type="submit" disabled={submitting} className="sm:flex-none">{submitting ? 'Updating...' : 'Save Changes'}</Button>
             </div>
           </div>
         </form>
+        )}
       </Modal>
 
       <Card>
@@ -333,7 +391,7 @@ export default function AdminEmployeesPage() {
                       </Badge>
                     </td>
                     <td className="py-2 px-3">
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(e)}>
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(e)} disabled={loadingEmployeeId === e.id}>
                         ✏️ Edit
                       </Button>
                     </td>
