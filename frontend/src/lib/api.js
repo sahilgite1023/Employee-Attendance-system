@@ -132,6 +132,8 @@ export const adminAPI = {
   createEmployee: (data) => api.post('/admin/employees', data),
   updateEmployee: (id, data) => api.put(`/admin/employees/${id}`, data),
   deactivateEmployee: (id) => api.delete(`/admin/employees/${id}`),
+  activateEmployee: (id) => api.post(`/admin/employees/${id}/activate`),
+  softDeactivateEmployee: (id) => api.post(`/admin/employees/${id}/deactivate`),
   getAttendanceReport: (params) => api.get('/admin/reports/attendance', { params }),
   getLeaveReport: (params) => api.get('/admin/reports/leave', { params }),
 

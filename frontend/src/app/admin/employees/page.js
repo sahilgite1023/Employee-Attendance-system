@@ -10,6 +10,7 @@ import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Input from '@/components/common/Input';
 import PhoneInput from '@/components/common/PhoneInput';
+import Modal from '@/components/common/Modal';
 import Loader from '@/components/common/Loader';
 
 const departments = ['Engineering', 'Development', 'Quality Assurance', 'DevOps', 'Human Resources', 'Finance', 'Marketing', 'Sales', 'Operations', 'Customer Support', 'Product Management', 'Design', 'Administration'];
@@ -35,9 +36,12 @@ export default function AdminEmployeesPage() {
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState(null);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState({ name: '', email: '', phone: '', designation: '', department: '', roleId: '3' });
+  const [editForm, setEditForm] = useState({ first_name: '', last_name: '', phone: '', designation: '', department: '', role_id: '', is_active: true });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -84,8 +88,9 @@ export default function AdminEmployeesPage() {
       });
       setMessage({ type: 'success', text: `Employee created! ID: ${response.data.employee.employee_id}, Password: ${response.data.temporaryPassword}` });
       setForm({ name: '', email: '', phone: '', designation: '', department: '', roleId: '3' });
-      setShowModal(false);
+      setShowAddModal(false);
       loadEmployees();
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
     } catch (error) {
       setMessage({ type: 'error', text: error.message || 'Failed to create employee' });
     } finally {
@@ -93,14 +98,67 @@ export default function AdminEmployeesPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this employee permanently?')) return;
+  const handleEdit = (employee) => {
+    setEditingEmployee(employee);
+    setEditForm({
+      first_name: employee.first_name,
+      last_name: employee.last_name,
+      phone: employee.phone || '',
+      designation: employee.designation,
+      department: employee.department || '',
+      role_id: employee.role === 'admin' ? '1' : '3',
+      is_active: employee.is_active,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
+    if (!editForm.first_name || !editForm.last_name || !editForm.designation) {
+      setErrors({ first_name: !editForm.first_name, last_name: !editForm.last_name, designation: !editForm.designation });
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      await adminAPI.deactivateEmployee(id);
-      setMessage({ type: 'success', text: 'Employee deleted' });
+      // Update employee details
+      await adminAPI.updateEmployee(editingEmployee.id, {
+        first_name: editForm.first_name,
+        last_name: editForm.last_name,
+        phone: editForm.phone,
+        designation: editForm.designation,
+        department: editForm.department,
+        role_id: editForm.role_id,
+        is_active: editForm.is_active,
+      });
+
+      setMessage({ type: 'success', text: 'Employee updated successfully!' });
+      setShowEditModal(false);
+      setEditingEmployee(null);
       loadEmployees();
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message || 'Failed to update employee' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteFromModal = async () => {
+    if (!confirm(`Delete ${editingEmployee.first_name} ${editingEmployee.last_name} permanently?\n\nThis will remove all their data including attendance and leave records. This action cannot be undone.`)) return;
+    
+    setSubmitting(true);
+    try {
+      await adminAPI.deactivateEmployee(editingEmployee.id);
+      setMessage({ type: 'success', text: 'Employee deleted permanently' });
+      setShowEditModal(false);
+      setEditingEmployee(null);
+      loadEmployees();
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to delete employee' });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -134,46 +192,112 @@ export default function AdminEmployeesPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-64"
         />
-        <Button onClick={() => setShowModal(true)}>Add Employee</Button>
+        <Button onClick={() => setShowAddModal(true)}>+ Add Employee</Button>
       </div>
 
-      {showModal && (
-        <Card className="mb-6">
-          <h3 className="text-lg font-semibold mb-4">Add New Employee</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Full Name" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} error={errors.name} />
-              <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} error={errors.email} />
-              <PhoneInput label="Phone" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} />
-              <div>
-                <label className="block text-sm font-medium mb-1">Department</label>
-                <select value={form.department} onChange={(e) => setForm({...form, department: e.target.value, designation: ''})} className="w-full px-3 py-2 border rounded-lg">
-                  <option value="">Select Department</option>
-                  {departments.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Designation</label>
-                <select value={form.designation} onChange={(e) => setForm({...form, designation: e.target.value})} className="w-full px-3 py-2 border rounded-lg" disabled={!form.department}>
-                  <option value="">{form.department ? 'Select Designation' : 'Select Department First'}</option>
-                  {form.department && departmentDesignations[form.department]?.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Role</label>
-                <select value={form.roleId} onChange={(e) => setForm({...form, roleId: e.target.value})} className="w-full px-3 py-2 border rounded-lg">
-                  <option value="1">Admin</option>
-                  <option value="3">Employee</option>
-                </select>
-              </div>
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add New Employee" size="lg">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="Full Name" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} error={errors.name} required />
+            <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} error={errors.email} required />
+            <PhoneInput label="Phone" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} />
+            <div>
+              <label className="block text-sm font-medium mb-1">Department</label>
+              <select value={form.department} onChange={(e) => setForm({...form, department: e.target.value, designation: ''})} className="w-full px-3 py-2 border rounded-lg">
+                <option value="">Select Department</option>
+                {departments.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
             </div>
-            <div className="flex gap-4">
-              <Button type="submit" disabled={submitting}>{submitting ? 'Creating...' : 'Create'}</Button>
-              <Button type="button" variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
+            <div>
+              <label className="block text-sm font-medium mb-1">Designation</label>
+              <select value={form.designation} onChange={(e) => setForm({...form, designation: e.target.value})} className="w-full px-3 py-2 border rounded-lg" disabled={!form.department} required>
+                <option value="">{form.department ? 'Select Designation' : 'Select Department First'}</option>
+                {form.department && departmentDesignations[form.department]?.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
             </div>
-          </form>
-        </Card>
-      )}
+            <div>
+              <label className="block text-sm font-medium mb-1">Role</label>
+              <select value={form.roleId} onChange={(e) => setForm({...form, roleId: e.target.value})} className="w-full px-3 py-2 border rounded-lg">
+                <option value="1">Admin</option>
+                <option value="3">Employee</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-4 justify-end">
+            <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
+            <Button type="submit" disabled={submitting}>{submitting ? 'Creating...' : 'Create Employee'}</Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={showEditModal} onClose={() => { setShowEditModal(false); setEditingEmployee(null); }} title="Edit Employee Details" size="lg">
+        <form onSubmit={handleUpdateSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="First Name" value={editForm.first_name} onChange={(e) => setEditForm({...editForm, first_name: e.target.value})} error={errors.first_name} required />
+            <Input label="Last Name" value={editForm.last_name} onChange={(e) => setEditForm({...editForm, last_name: e.target.value})} error={errors.last_name} required />
+            <PhoneInput label="Phone" value={editForm.phone} onChange={(e) => setEditForm({...editForm, phone: e.target.value})} />
+            <div>
+              <label className="block text-sm font-medium mb-1">Department</label>
+              <select value={editForm.department} onChange={(e) => setEditForm({...editForm, department: e.target.value, designation: ''})} className="w-full px-3 py-2 border rounded-lg">
+                <option value="">Select Department</option>
+                {departments.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Designation</label>
+              <select value={editForm.designation} onChange={(e) => setEditForm({...editForm, designation: e.target.value})} className="w-full px-3 py-2 border rounded-lg" disabled={!editForm.department} required>
+                <option value="">{editForm.department ? 'Select Designation' : 'Select Department First'}</option>
+                {editForm.department && departmentDesignations[editForm.department]?.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Role</label>
+              <select value={editForm.role_id} onChange={(e) => setEditForm({...editForm, role_id: e.target.value})} className="w-full px-3 py-2 border rounded-lg">
+                <option value="1">Admin</option>
+                <option value="3">Employee</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Status Toggle */}
+          <div className="pt-4 border-t">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Employee Status</label>
+                <p className="text-xs text-gray-500">Toggle to activate or deactivate this employee</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditForm({...editForm, is_active: !editForm.is_active})}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  editForm.is_active ? 'bg-green-500' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    editForm.is_active ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            <div className="mt-2">
+              <Badge variant={editForm.is_active ? 'success' : 'danger'}>
+                {editForm.is_active ? '✓ Active' : '✗ Inactive'}
+              </Badge>
+            </div>
+          </div>
+
+          <div className="flex gap-4 justify-between pt-4 border-t">
+            <Button type="button" variant="danger" onClick={() => handleDeleteFromModal()} disabled={submitting}>
+              🗑️ Delete Permanently
+            </Button>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => { setShowEditModal(false); setEditingEmployee(null); }}>Cancel</Button>
+              <Button type="submit" disabled={submitting}>{submitting ? 'Updating...' : 'Save Changes'}</Button>
+            </div>
+          </div>
+        </form>
+      </Modal>
 
       <Card>
         <h3 className="text-lg font-semibold mb-4">Employees ({filtered.length})</h3>
@@ -188,7 +312,7 @@ export default function AdminEmployeesPage() {
                 <th className="text-left py-2 px-3">Department</th>
                 <th className="text-left py-2 px-3">Role</th>
                 <th className="text-left py-2 px-3">Status</th>
-                <th className="text-left py-2 px-3">Actions</th>
+                <th className="text-left py-2 px-3">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -196,15 +320,23 @@ export default function AdminEmployeesPage() {
                 <tr><td colSpan="8" className="text-center py-8 text-gray-500">No employees found</td></tr>
               ) : (
                 filtered.map(e => (
-                  <tr key={e.id} className="border-b hover:bg-gray-50">
+                  <tr key={e.id} className={`border-b hover:bg-gray-50 ${!e.is_active ? 'opacity-60' : ''}`}>
                     <td className="py-2 px-3">{e.employee_id}</td>
                     <td className="py-2 px-3">{e.first_name} {e.last_name}</td>
                     <td className="py-2 px-3">{e.email}</td>
                     <td className="py-2 px-3">{e.designation}</td>
                     <td className="py-2 px-3">{e.department || '-'}</td>
                     <td className="py-2 px-3"><Badge variant="info">{e.role}</Badge></td>
-                    <td className="py-2 px-3"><Badge variant={e.is_active ? 'success' : 'danger'}>{e.is_active ? 'Active' : 'Inactive'}</Badge></td>
-                    <td className="py-2 px-3"><Button variant="danger" size="sm" onClick={() => handleDelete(e.id)}>Delete</Button></td>
+                    <td className="py-2 px-3">
+                      <Badge variant={e.is_active ? 'success' : 'danger'}>
+                        {e.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </td>
+                    <td className="py-2 px-3">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(e)}>
+                        ✏️ Edit
+                      </Button>
+                    </td>
                   </tr>
                 ))
               )}
