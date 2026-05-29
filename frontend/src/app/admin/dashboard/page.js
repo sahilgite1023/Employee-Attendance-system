@@ -9,6 +9,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
+import StatCard from '@/components/common/StatCard';
 import Loader from '@/components/common/Loader';
 
 export default function AdminDashboardPage() {
@@ -54,98 +55,93 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminLayout>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <p className="text-sm text-gray-600">Total Employees</p>
-          <p className="text-3xl font-bold text-blue-600 mt-2">
-            {stats?.totalEmployees || 0}
-          </p>
-        </Card>
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Total Employees"
+            value={stats?.totalEmployees || 0}
+            color="primary"
+            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-3-6.5" /></svg>}
+          />
+          <StatCard
+            title="Present Today"
+            value={stats?.presentToday || 0}
+            color="success"
+            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          />
+          <StatCard
+            title="On Leave"
+            value={stats?.onLeaveToday || 0}
+            color="warning"
+            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+          />
+          <StatCard
+            title="Late Arrivals"
+            value={stats?.lateToday || 0}
+            color="danger"
+            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          />
+        </div>
 
-        <Card>
-          <p className="text-sm text-gray-600">Present Today</p>
-          <p className="text-3xl font-bold text-green-600 mt-2">
-            {stats?.presentToday || 0}
-          </p>
-        </Card>
-
-        <Card>
-          <p className="text-sm text-gray-600">On Leave</p>
-          <p className="text-3xl font-bold text-orange-600 mt-2">
-            {stats?.onLeaveToday || 0}
-          </p>
-        </Card>
-
-        <Card>
-          <p className="text-sm text-gray-600">Late Arrivals</p>
-          <p className="text-3xl font-bold text-red-600 mt-2">
-            {stats?.lateToday || 0}
-          </p>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Link href="/admin/employees">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <h3 className="font-semibold text-gray-900">Manage Employees</h3>
-            <p className="text-sm text-gray-600 mt-1">Add, edit, or view</p>
-          </Card>
-        </Link>
-
-        <Link href="/admin/leaves">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <h3 className="font-semibold text-gray-900">Leave Approvals</h3>
-            <p className="text-sm text-gray-600 mt-1">Review requests</p>
-          </Card>
-        </Link>
-
-        <Link href="/admin/attendance">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <h3 className="font-semibold text-gray-900">Attendance</h3>
-            <p className="text-sm text-gray-600 mt-1">View daily records</p>
-          </Card>
-        </Link>
-
-        <Link href="/admin/reports">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <h3 className="font-semibold text-gray-900">Reports</h3>
-            <p className="text-sm text-gray-600 mt-1">View analytics</p>
-          </Card>
-        </Link>
-      </div>
-
-      {stats?.pendingLeaveRequests && stats.pendingLeaveRequests.length > 0 && (
-        <Card className="mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Pending Leave Approvals</h2>
-            <Link href="/admin/leaves">
-              <Button variant="outline" size="sm">View All</Button>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { href: '/admin/employees', title: 'Manage Employees', desc: 'Add, edit, or view', color: 'primary', d: 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-3-6.5' },
+            { href: '/admin/leaves', title: 'Leave Approvals', desc: 'Review requests', color: 'success', d: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
+            { href: '/admin/attendance', title: 'Attendance', desc: 'View daily records', color: 'info', d: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+            { href: '/admin/reports', title: 'Reports', desc: 'View analytics', color: 'accent', d: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+          ].map((item) => (
+            <Link key={item.href} href={item.href}>
+              <Card interactive className="h-full">
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                    item.color === 'primary' ? 'bg-primary-50 text-primary-600 ring-1 ring-inset ring-primary-100' :
+                    item.color === 'success' ? 'bg-success-50 text-success-600 ring-1 ring-inset ring-success-100' :
+                    item.color === 'info' ? 'bg-info-50 text-info-600 ring-1 ring-inset ring-info-100' :
+                    'bg-accent-50 text-accent-600 ring-1 ring-inset ring-accent-100'
+                  }`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.d} /></svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900">{item.title}</h3>
+                    <p className="text-sm text-slate-500 mt-0.5">{item.desc}</p>
+                  </div>
+                </div>
+              </Card>
             </Link>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 px-3">Employee</th>
-                  <th className="text-left py-2 px-3">Start</th>
-                  <th className="text-left py-2 px-3">End</th>
-                  <th className="text-left py-2 px-3">Days</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.pendingLeaveRequests.slice(0, 5).map((req) => (
-                  <tr key={req.id} className="border-b hover:bg-gray-50">
-                    <td className="py-2 px-3">{req.employee_name}</td>
-                    <td className="py-2 px-3">{new Date(req.start_date).toLocaleDateString()}</td>
-                    <td className="py-2 px-3">{new Date(req.end_date).toLocaleDateString()}</td>
-                    <td className="py-2 px-3">{req.total_days}</td>
+          ))}
+        </div>
+
+        {stats?.pendingLeaveRequests && stats.pendingLeaveRequests.length > 0 && (
+          <Card title="Pending Leave Approvals" noPadding headerAction={
+            <Link href="/admin/leaves">
+              <Button variant="secondary" size="sm">View All</Button>
+            </Link>
+          }>
+            <div className="table-container border-0">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Days</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
+                </thead>
+                <tbody>
+                  {stats.pendingLeaveRequests.slice(0, 5).map((req) => (
+                    <tr key={req.id}>
+                      <td className="font-medium text-slate-900">{req.employee_name}</td>
+                      <td>{new Date(req.start_date).toLocaleDateString()}</td>
+                      <td>{new Date(req.end_date).toLocaleDateString()}</td>
+                      <td className="tabular-nums">{req.total_days}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+      </div>
     </AdminLayout>
   );
 }

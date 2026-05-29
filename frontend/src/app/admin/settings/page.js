@@ -104,18 +104,18 @@ export default function SettingsPage() {
     if (type === 'boolean') {
       const isOn = formData[key] === 'true' || formData[key] === true;
       return (
-        <div key={key} className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
+        <div key={key} className="flex items-center justify-between py-3 px-4 bg-slate-50 ring-1 ring-inset ring-slate-100 rounded-xl">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-slate-700">
               {setting.description}
             </label>
-            <span className="text-xs text-gray-500">{key}</span>
+            <span className="text-xs text-slate-400">{key}</span>
           </div>
           <button
             type="button"
             onClick={() => handleChange(key, isOn ? 'false' : 'true')}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              isOn ? 'bg-green-500' : 'bg-gray-300'
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+              isOn ? 'bg-success-500' : 'bg-slate-300'
             }`}
           >
             <span
@@ -130,7 +130,7 @@ export default function SettingsPage() {
 
     return (
       <div key={key}>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           {setting.description}
         </label>
         <Input
@@ -155,72 +155,62 @@ export default function SettingsPage() {
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">System Settings</h2>
-        <p className="text-gray-600 mt-1">
-          Configure attendance, leave, and security rules
-        </p>
-      </div>
-
-      {message && (
-        <Alert
-          type={message.type}
-          message={message.text}
-          onClose={() => setMessage(null)}
-        />
-      )}
-
-      {settings.attendance && (
-        <Card className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Attendance Rules
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {settings.attendance.map((setting) => renderSettingField(setting))}
-          </div>
-        </Card>
-      )}
-
-      {settings.leave && (
-        <Card className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Leave Rules
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {settings.leave.map((setting) => renderSettingField(setting))}
-          </div>
-        </Card>
-      )}
-
-      {settings.security && (
-        <Card className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            🔒 Security & Face Verification
-          </h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Control face recognition requirements for employee check-in.
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">System Settings</h2>
+          <p className="page-subtitle mt-1">
+            Configure attendance, leave, and security rules.
           </p>
-          <div className="space-y-4">
-            {settings.security.map((setting) => renderSettingField(setting))}
-          </div>
+        </div>
+
+        {message && (
+          <Alert
+            type={message.type}
+            message={message.text}
+            onClose={() => setMessage(null)}
+          />
+        )}
+
+        {settings.attendance && (
+          <Card title="Attendance Rules">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {settings.attendance.map((setting) => renderSettingField(setting))}
+            </div>
+          </Card>
+        )}
+
+        {settings.leave && (
+          <Card title="Leave Rules">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {settings.leave.map((setting) => renderSettingField(setting))}
+            </div>
+          </Card>
+        )}
+
+        {settings.security && (
+          <Card title="Security & Face Verification" subtitle="Control face recognition requirements for employee check-in.">
+            <div className="space-y-4">
+              {settings.security.map((setting) => renderSettingField(setting))}
+            </div>
+          </Card>
+        )}
+
+        <div className="flex gap-3">
+          <Button onClick={handleSave} disabled={saving} className="flex-1">
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+          <Button onClick={handleReset} disabled={saving} variant="secondary">
+            Reset
+          </Button>
+        </div>
+
+        <Card className="bg-primary-50 border-primary-100">
+          <p className="text-sm text-primary-900">
+            <strong>Note:</strong> Changes take effect immediately. Time format: HH:MM (24-hour).
+            Face match threshold: 30 = very strict, 50 = balanced, 70 = lenient.
+          </p>
         </Card>
-      )}
-
-      <div className="flex gap-4">
-        <Button onClick={handleSave} disabled={saving} className="flex-1">
-          {saving ? 'Saving...' : 'Save Changes'}
-        </Button>
-        <Button onClick={handleReset} disabled={saving} variant="outline">
-          Reset
-        </Button>
       </div>
-
-      <Card className="mt-6 bg-blue-50 border-blue-200">
-        <p className="text-sm text-blue-900">
-          <strong>Note:</strong> Changes take effect immediately. Time format: HH:MM (24-hour).
-          Face match threshold: 30 = very strict, 50 = balanced, 70 = lenient.
-        </p>
-      </Card>
     </AdminLayout>
   );
 }

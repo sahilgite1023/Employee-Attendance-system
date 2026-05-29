@@ -25,23 +25,23 @@ export default function Modal({
     >
       {/* Background overlay */}
       <div 
-        className="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity animate-fade-in"
         aria-hidden="true"
         onClick={closeOnOverlay ? onClose : undefined}
       />
 
       <div className="relative flex min-h-full items-center justify-center p-4 sm:p-6">
         {/* Modal panel */}
-        <div className={`relative w-full ${sizeClasses[size]} max-h-[calc(100vh-2rem)] bg-white rounded-xl text-left overflow-hidden shadow-modal transform transition-all flex flex-col animate-scale-in`}>
+        <div className={`relative w-full ${sizeClasses[size]} max-h-[calc(100vh-2rem)] bg-white rounded-2xl text-left overflow-hidden shadow-modal transform transition-all flex flex-col animate-scale-in`}>
           {/* Header */}
           {title && (
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900" id="modal-title">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900" id="modal-title">
                 {title}
               </h3>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-500 transition-colors"
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1 transition-colors"
                 aria-label="Close modal"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,13 +52,13 @@ export default function Modal({
           )}
 
           {/* Content */}
-          <div className="px-6 py-4 overflow-y-auto">
+          <div className="px-6 py-5 overflow-y-auto scrollbar-thin">
             {children}
           </div>
 
           {/* Footer */}
           {footer && (
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-3">
+            <div className="px-6 py-4 bg-slate-50/70 border-t border-slate-200 flex items-center justify-end gap-3">
               {footer}
             </div>
           )}

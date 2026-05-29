@@ -7,16 +7,16 @@ export default function Loader({ size = 'md', text = 'Loading...', fullScreen = 
 
   const content = (
     <div className="flex flex-col items-center justify-center py-12">
-      <div className={`animate-spin rounded-full border-b-primary-600 border-t-transparent ${sizeClasses[size]}`} />
+      <div className={`animate-spin rounded-full border-primary-600 border-t-transparent ${sizeClasses[size]}`} />
       {text && (
-        <p className="mt-4 text-gray-600 text-sm font-medium animate-pulse">{text}</p>
+        <p className="mt-4 text-slate-500 text-sm font-medium animate-pulse">{text}</p>
       )}
     </div>
   );
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
         {content}
       </div>
     );

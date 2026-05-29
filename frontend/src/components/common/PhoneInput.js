@@ -84,9 +84,9 @@ export default function PhoneInput({
   return (
     <div className="w-full min-w-0">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-slate-700 mb-1">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-danger-500 ml-1">*</span>}
         </label>
       )}
       <div className="relative flex w-full min-w-0">
@@ -96,7 +96,7 @@ export default function PhoneInput({
             type="button"
             onClick={() => !disabled && setIsDropdownOpen(!isDropdownOpen)}
             disabled={disabled}
-            className={`h-full px-3 py-2 border border-r-0 border-gray-300 rounded-l-lg bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2 min-w-[100px] ${
+            className={`h-full px-3 py-2.5 border border-r-0 border-slate-200 rounded-l-xl bg-slate-50 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 flex items-center gap-2 min-w-[100px] ${
               disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
             }`}
           >
@@ -119,17 +119,17 @@ export default function PhoneInput({
                 className="fixed inset-0 z-10" 
                 onClick={() => setIsDropdownOpen(false)}
               />
-              <div className="absolute z-20 mt-1 w-64 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-20 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-card-lg max-h-60 overflow-y-auto scrollbar-thin">
                 {countries.map((country, index) => (
                   <button
                     key={`${country.code}-${country.country}-${index}`}
                     type="button"
                     onClick={() => handleCountryChange(country.code)}
-                    className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-sm"
+                    className="w-full px-3 py-2 text-left hover:bg-slate-100 flex items-center gap-2 text-sm transition-colors"
                   >
                     <span className="text-xl">{country.flag}</span>
                     <span className="font-medium">{country.code}</span>
-                    <span className="text-gray-600">{country.name}</span>
+                    <span className="text-slate-500">{country.name}</span>
                   </button>
                 ))}
               </div>
@@ -144,13 +144,13 @@ export default function PhoneInput({
           onChange={handlePhoneChange}
           disabled={disabled}
           placeholder="Enter phone number"
-          className={`min-w-0 flex-1 w-full px-3 py-2 border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            error ? 'border-red-500' : 'border-gray-300'
-          } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+          className={`min-w-0 flex-1 w-full px-3 py-2.5 border rounded-r-xl focus:outline-none focus:ring-2 focus:ring-primary-500/60 focus:border-primary-400 transition-all ${
+            error ? 'border-danger-400' : 'border-slate-200'
+          } ${disabled ? 'bg-slate-100 cursor-not-allowed' : ''}`}
         />
       </div>
       {error && (
-        <p className="mt-1 text-sm text-red-500">{error}</p>
+        <p className="mt-1 text-sm text-danger-600">{error}</p>
       )}
     </div>
   );

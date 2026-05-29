@@ -102,17 +102,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-100 p-4 sm:p-6 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-accent-50 p-4 sm:p-6 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-200 rounded-full opacity-20 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary-300 rounded-full opacity-20 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-200 rounded-full opacity-20 blur-3xl" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-modal w-full max-w-md p-8 sm:p-10 relative z-10 animate-scale-in">
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4 shadow-lg overflow-hidden">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4 shadow-lg overflow-hidden bg-gradient-to-br from-primary-600 to-accent-600">
             <Image
               src="/logo.png"
               alt="E-Attendance Logo"
@@ -122,8 +122,8 @@ export default function LoginPage() {
               priority
             />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Welcome Back</h1>
+          <p className="text-slate-500">
             Sign in to your attendance account
           </p>
         </div>
@@ -184,11 +184,11 @@ export default function LoginPage() {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 disabled={loading}
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded cursor-pointer"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded cursor-pointer"
               />
               <label
                 htmlFor="remember-me"
-                className="ml-2 block text-gray-700 cursor-pointer select-none"
+                className="ml-2 block text-slate-700 cursor-pointer select-none"
               >
                 Remember me
               </label>
@@ -215,7 +215,7 @@ export default function LoginPage() {
         </form>
 
         {/* Footer */}
-        <div className="mt-6 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
+        <div className="mt-6 pt-6 border-t border-slate-100 text-center text-sm text-slate-500">
           <p>
             Having trouble? Contact your administrator
           </p>

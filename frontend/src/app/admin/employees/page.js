@@ -9,6 +9,7 @@ import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Input from '@/components/common/Input';
+import Alert from '@/components/common/Alert';
 import PhoneInput from '@/components/common/PhoneInput';
 import Modal from '@/components/common/Modal';
 import Loader from '@/components/common/Loader';
@@ -245,24 +246,40 @@ export default function AdminEmployeesPage() {
 
   return (
     <AdminLayout>
-      {message.text && (
-        <div className={`mb-4 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-          <p className="text-sm whitespace-pre-line">{message.text}</p>
-        </div>
-      )}
-
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="w-full sm:max-w-xs">
-          <Input
-            type="text"
-            placeholder="Search employees..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full"
+      <div className="space-y-6">
+        {message.text && (
+          <Alert
+            type={message.type === 'success' ? 'success' : 'danger'}
+            message={message.text}
+            onClose={() => setMessage({ type: '', text: '' })}
           />
+        )}
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Employees</h2>
+            <p className="page-subtitle mt-1">Manage your team members and their access.</p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="w-full sm:w-64">
+              <Input
+                type="text"
+                placeholder="Search employees..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full"
+                icon={
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                }
+              />
+            </div>
+            <Button onClick={() => setShowAddModal(true)} icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            }>Add Employee</Button>
+          </div>
         </div>
-        <Button onClick={() => setShowAddModal(true)} className="sm:flex-none">+ Add Employee</Button>
-      </div>
 
       <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add New Employee" size="lg" closeOnOverlay={true}>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -271,29 +288,29 @@ export default function AdminEmployeesPage() {
             <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({...form, email: e.target.value})} error={errors.email} required />
             <PhoneInput label="Phone" value={form.phone} onChange={(e) => setForm({...form, phone: e.target.value})} />
             <div>
-              <label className="block text-sm font-medium mb-1">Department</label>
-              <select value={form.department} onChange={(e) => setForm({...form, department: e.target.value, designation: ''})} className="w-full px-3 py-2 border rounded-lg">
+              <label className="block text-sm font-medium text-slate-700 mb-2">Department</label>
+              <select value={form.department} onChange={(e) => setForm({...form, department: e.target.value, designation: ''})} className="input">
                 <option value="">Select Department</option>
                 {departments.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Designation</label>
-              <select value={form.designation} onChange={(e) => setForm({...form, designation: e.target.value})} className="w-full px-3 py-2 border rounded-lg" disabled={!form.department} required>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Designation</label>
+              <select value={form.designation} onChange={(e) => setForm({...form, designation: e.target.value})} className="input" disabled={!form.department} required>
                 <option value="">{form.department ? 'Select Designation' : 'Select Department First'}</option>
                 {form.department && departmentDesignations[form.department]?.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Role</label>
-              <select value={form.roleId} onChange={(e) => setForm({...form, roleId: e.target.value})} className="w-full px-3 py-2 border rounded-lg">
+              <label className="block text-sm font-medium text-slate-700 mb-2">Role</label>
+              <select value={form.roleId} onChange={(e) => setForm({...form, roleId: e.target.value})} className="input">
                 <option value="1">Admin</option>
                 <option value="3">Employee</option>
               </select>
             </div>
           </div>
-          <div className="flex gap-4 justify-end">
-            <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
+          <div className="flex gap-3 justify-end">
+            <Button type="button" variant="secondary" onClick={() => setShowAddModal(false)}>Cancel</Button>
             <Button type="submit" disabled={submitting}>{submitting ? 'Creating...' : 'Create Employee'}</Button>
           </div>
         </form>
@@ -307,11 +324,11 @@ export default function AdminEmployeesPage() {
         ) : (
         <form onSubmit={handleUpdateSubmit} className="space-y-5">
           {editingEmployee && (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-              <p className="text-sm font-medium text-gray-900">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-sm font-semibold text-slate-900">
                 {editingEmployee.first_name} {editingEmployee.last_name}
               </p>
-              <p className="mt-1 text-xs text-gray-600">
+              <p className="mt-1 text-xs text-slate-500">
                 {editingEmployee.employee_id} • {editingEmployee.email}
               </p>
             </div>
@@ -322,22 +339,22 @@ export default function AdminEmployeesPage() {
             <Input label="Last Name" value={editForm.last_name} onChange={(e) => setEditForm({...editForm, last_name: e.target.value})} error={errors.last_name} required />
             <PhoneInput label="Phone" value={editForm.phone} onChange={(e) => setEditForm({...editForm, phone: e.target.value})} />
             <div>
-              <label className="block text-sm font-medium mb-1">Department</label>
-              <select value={editForm.department} onChange={(e) => setEditForm({...editForm, department: e.target.value, designation: ''})} className="w-full px-3 py-2 border rounded-lg">
+              <label className="block text-sm font-medium text-slate-700 mb-2">Department</label>
+              <select value={editForm.department} onChange={(e) => setEditForm({...editForm, department: e.target.value, designation: ''})} className="input">
                 <option value="">Select Department</option>
                 {departments.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Designation</label>
-              <select value={editForm.designation} onChange={(e) => setEditForm({...editForm, designation: e.target.value})} className="w-full px-3 py-2 border rounded-lg" disabled={!editForm.department} required>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Designation</label>
+              <select value={editForm.designation} onChange={(e) => setEditForm({...editForm, designation: e.target.value})} className="input" disabled={!editForm.department} required>
                 <option value="">{editForm.department ? 'Select Designation' : 'Select Department First'}</option>
                 {editForm.department && departmentDesignations[editForm.department]?.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Role</label>
-              <select value={editForm.role_id} onChange={(e) => setEditForm({...editForm, role_id: e.target.value})} className="w-full px-3 py-2 border rounded-lg">
+              <label className="block text-sm font-medium text-slate-700 mb-2">Role</label>
+              <select value={editForm.role_id} onChange={(e) => setEditForm({...editForm, role_id: e.target.value})} className="input">
                 <option value="1">Admin</option>
                 <option value="3">Employee</option>
               </select>
@@ -355,16 +372,16 @@ export default function AdminEmployeesPage() {
           </div>
 
           {/* Face Recognition */}
-          <div className="pt-4 border-t">
+          <div className="pt-4 border-t border-slate-100">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Face Recognition</label>
-                <p className="text-xs text-gray-500">Enroll or reset this employee&apos;s face for check-in verification</p>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Face Recognition</label>
+                <p className="text-xs text-slate-500">Enroll or reset this employee&apos;s face for check-in verification</p>
               </div>
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={() => {
                     setFaceTargetEmployee(editingEmployee);
@@ -374,7 +391,7 @@ export default function AdminEmployeesPage() {
                   }}
                   disabled={faceLoading}
                 >
-                  📷 Enroll Face
+                  Enroll Face
                 </Button>
                 <Button
                   type="button"
@@ -390,17 +407,17 @@ export default function AdminEmployeesPage() {
           </div>
 
           {/* Status Toggle */}
-          <div className="pt-4 border-t">
+          <div className="pt-4 border-t border-slate-100">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Employee Status</label>
-                <p className="text-xs text-gray-500">Toggle to activate or deactivate this employee</p>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Employee Status</label>
+                <p className="text-xs text-slate-500">Toggle to activate or deactivate this employee</p>
               </div>
               <button
                 type="button"
                 onClick={() => setEditForm({...editForm, is_active: !editForm.is_active})}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  editForm.is_active ? 'bg-green-500' : 'bg-gray-300'
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                  editForm.is_active ? 'bg-success-500' : 'bg-slate-300'
                 }`}
               >
                 <span
@@ -412,17 +429,17 @@ export default function AdminEmployeesPage() {
             </div>
             <div className="mt-2">
               <Badge variant={editForm.is_active ? 'success' : 'danger'}>
-                {editForm.is_active ? '✓ Active' : '✗ Inactive'}
+                {editForm.is_active ? 'Active' : 'Inactive'}
               </Badge>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <Button type="button" variant="danger" onClick={() => handleDeleteFromModal()} disabled={submitting} className="sm:flex-none">
-              🗑️ Delete Permanently
+              Delete Permanently
             </Button>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Button type="button" variant="outline" onClick={() => { setShowEditModal(false); setEditingEmployee(null); }} className="sm:flex-none">Cancel</Button>
+              <Button type="button" variant="secondary" onClick={() => { setShowEditModal(false); setEditingEmployee(null); }} className="sm:flex-none">Cancel</Button>
               <Button type="submit" disabled={submitting} className="sm:flex-none">{submitting ? 'Updating...' : 'Save Changes'}</Button>
             </div>
           </div>
@@ -430,42 +447,41 @@ export default function AdminEmployeesPage() {
         )}
       </Modal>
 
-      <Card>
-        <h3 className="text-lg font-semibold mb-4">Employees ({filtered.length})</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      <Card title={`Employees (${filtered.length})`} noPadding>
+        <div className="table-container border-0">
+          <table className="table">
             <thead>
-              <tr className="border-b">
-                <th className="text-left py-2 px-3">ID</th>
-                <th className="text-left py-2 px-3">Name</th>
-                <th className="text-left py-2 px-3">Email</th>
-                <th className="text-left py-2 px-3">Designation</th>
-                <th className="text-left py-2 px-3">Department</th>
-                <th className="text-left py-2 px-3">Role</th>
-                <th className="text-left py-2 px-3">Status</th>
-                <th className="text-left py-2 px-3">Action</th>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Designation</th>
+                <th>Department</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan="8" className="text-center py-8 text-gray-500">No employees found</td></tr>
+                <tr><td colSpan="8" className="text-center py-12 text-slate-500">No employees found</td></tr>
               ) : (
                 filtered.map(e => (
-                  <tr key={e.id} className={`border-b hover:bg-gray-50 ${!e.is_active ? 'opacity-60' : ''}`}>
-                    <td className="py-2 px-3">{e.employee_id}</td>
-                    <td className="py-2 px-3">{e.first_name} {e.last_name}</td>
-                    <td className="py-2 px-3">{e.email}</td>
-                    <td className="py-2 px-3">{e.designation}</td>
-                    <td className="py-2 px-3">{e.department || '-'}</td>
-                    <td className="py-2 px-3"><Badge variant="info">{e.role}</Badge></td>
-                    <td className="py-2 px-3">
+                  <tr key={e.id} className={!e.is_active ? 'opacity-60' : ''}>
+                    <td className="font-medium text-slate-900">{e.employee_id}</td>
+                    <td>{e.first_name} {e.last_name}</td>
+                    <td className="text-slate-500">{e.email}</td>
+                    <td>{e.designation}</td>
+                    <td>{e.department || '-'}</td>
+                    <td><Badge variant="info">{e.role}</Badge></td>
+                    <td>
                       <Badge variant={e.is_active ? 'success' : 'danger'}>
                         {e.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </td>
-                    <td className="py-2 px-3">
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(e)} disabled={loadingEmployeeId === e.id}>
-                        ✏️ Edit
+                    <td>
+                      <Button variant="secondary" size="sm" onClick={() => handleEdit(e)} disabled={loadingEmployeeId === e.id}>
+                        Edit
                       </Button>
                     </td>
                   </tr>
@@ -475,6 +491,7 @@ export default function AdminEmployeesPage() {
           </table>
         </div>
       </Card>
+      </div>
 
       {/* Admin Face Enrollment Modal */}
       <Modal
@@ -484,7 +501,7 @@ export default function AdminEmployeesPage() {
         size="sm"
       >
         <div className="flex flex-col items-center gap-4 py-2">
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-sm text-slate-500 text-center">
             Have the employee look directly at the camera. Hold still while we capture their face.
           </p>
           <Suspense fallback={<div className="flex items-center justify-center h-40"><Loader text="Loading camera…" /></div>}>

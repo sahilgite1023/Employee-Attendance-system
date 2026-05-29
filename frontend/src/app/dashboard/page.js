@@ -13,8 +13,10 @@ import Loader from '@/components/common/Loader';
 import EmptyState from '@/components/common/EmptyState';
 import Alert from '@/components/common/Alert';
 import Modal from '@/components/common/Modal';
+import StatCard from '@/components/common/StatCard';
 import LiveClock from '@/components/common/LiveClock';
 import WorkingTimer from '@/components/common/WorkingTimer';
+import EmployeeLayout from '@/components/common/EmployeeLayout';
 
 // Lazy-load FaceCapture so face-api models are only fetched when needed
 const FaceCapture = lazy(() => import('@/components/common/FaceCapture'));
@@ -197,9 +199,11 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader text="Loading your dashboard..." />
-      </div>
+      <EmployeeLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <Loader text="Loading your dashboard..." />
+        </div>
+      </EmployeeLayout>
     );
   }
 
@@ -207,81 +211,46 @@ export default function DashboardPage() {
   const hasCheckedOut = todayAttendance && todayAttendance.check_out_time;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="page-header sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+    <EmployeeLayout>
+      <div className="space-y-6">
+        {/* Greeting hero */}
+        <div className="card flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <div className="w-14 h-14 rounded-2xl bg-primary-50 ring-1 ring-inset ring-primary-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-xl font-bold text-primary-600">
+                {user?.first_name?.charAt(0)?.toUpperCase()}{user?.last_name?.charAt(0)?.toUpperCase()}
+              </span>
+            </div>
             <div>
-              <div className="flex items-center gap-3">
-                <h1 className="page-title">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                   {getGreeting()}, {user?.first_name || user?.name}!
                 </h1>
-                <Badge variant="success" className="uppercase">
+                <span className="badge badge-primary uppercase">
                   {user?.role_name || user?.role?.toUpperCase() || 'EMPLOYEE'}
-                </Badge>
+                </span>
               </div>
-              <p className="page-subtitle mt-1">
+              <p className="mt-1 text-sm text-slate-500">
                 {new Date().toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
-                })} • {user?.employee_id}
-                <span className="hidden md:inline"> • {user?.designation}</span>
+                })}
+                <span className="mx-1.5 text-slate-300">·</span>
+                {user?.employee_id}
+                {user?.designation && (
+                  <><span className="mx-1.5 text-slate-300 hidden md:inline">·</span><span className="hidden md:inline">{user?.designation}</span></>
+                )}
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <LiveClock />
-              <Button variant="ghost" size="sm" onClick={logout}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Logout
-              </Button>
-            </div>
           </div>
-          
-          {/* Navigation */}
-          <nav className="mt-4 flex gap-2 border-t border-gray-200 pt-4 overflow-x-auto">
-            <Link href="/dashboard">
-              <Button variant="primary" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                Dashboard
-              </Button>
-            </Link>
-            <Link href="/attendance">
-              <Button variant="ghost" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                Attendance
-              </Button>
-            </Link>
-            <Link href="/leave">
-              <Button variant="ghost" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Leave
-              </Button>
-            </Link>
-            <Link href="/profile">
-              <Button variant="ghost" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Profile
-              </Button>
-            </Link>
-          </nav>
+          <div className="flex-shrink-0 bg-slate-50 ring-1 ring-inset ring-slate-200 rounded-2xl px-5 py-3">
+            <LiveClock />
+          </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Alerts */}
         {successMessage && (
           <Alert type="success" message={successMessage} onClose={() => setSuccessMessage('')} />
@@ -291,33 +260,33 @@ export default function DashboardPage() {
         )}
 
         {/* Check-in/Check-out Section */}
-        <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
+        <Card>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="flex-1">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                <h2 className="text-xl font-bold text-slate-900 mb-2">
                   Today&apos;s Attendance
                 </h2>
                 {hasCheckedIn ? (
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-gray-700">
+                    <div className="flex items-center gap-2 text-slate-700">
                       <svg className="w-5 h-5 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span className="font-medium">Check-in:</span>
-                      <span className="font-semibold text-primary-700">{formatTime(todayAttendance.check_in_time)}</span>
+                      <span className="font-semibold text-primary-700 tabular-nums">{formatTime(todayAttendance.check_in_time)}</span>
                     </div>
                     {hasCheckedOut && (
                       <>
-                        <div className="flex items-center gap-2 text-gray-700">
+                        <div className="flex items-center gap-2 text-slate-700">
                           <svg className="w-5 h-5 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
                           <span className="font-medium">Check-out:</span>
-                          <span className="font-semibold text-primary-700">{formatTime(todayAttendance.check_out_time)}</span>
+                          <span className="font-semibold text-primary-700 tabular-nums">{formatTime(todayAttendance.check_out_time)}</span>
                         </div>
                         {todayAttendance.total_hours && (
-                          <div className="flex items-center gap-2 text-gray-700">
+                          <div className="flex items-center gap-2 text-slate-700">
                             <svg className="w-5 h-5 text-info-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -329,7 +298,7 @@ export default function DashboardPage() {
                     )}
                   </div>
                 ) : (
-                  <p className="text-gray-600">
+                  <p className="text-slate-500">
                     You haven&apos;t checked in today. Click the button to mark your attendance.
                   </p>
                 )}
@@ -368,7 +337,7 @@ export default function DashboardPage() {
                   </Button>
                 )}
                 {hasCheckedOut && (
-                  <div className="flex items-center gap-2 px-6 py-3 bg-success-100 border border-success-200 rounded-lg">
+                  <div className="flex items-center gap-2 px-6 py-3 bg-success-50 border border-success-200 rounded-xl">
                     <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -391,73 +360,50 @@ export default function DashboardPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="hover:shadow-card-hover transition-shadow">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Paid Leaves</p>
-                <p className="text-3xl font-bold text-info-600">
-                  {leaveBalance?.paidLeavesBalance || 0}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Available</p>
-              </div>
-              <div className="w-12 h-12 bg-info-100 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-info-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="hover:shadow-card-hover transition-shadow">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Pending Leaves</p>
-                <p className="text-3xl font-bold text-warning-600">
-                  {leaveBalance?.pendingRequests || 0}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Requests</p>
-              </div>
-              <div className="w-12 h-12 bg-warning-100 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="hover:shadow-card-hover transition-shadow">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">This Month</p>
-                <p className="text-3xl font-bold text-success-600">
-                  {stats?.present_days || 0}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Days Present</p>
-              </div>
-              <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="hover:shadow-card-hover transition-shadow">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Late Arrivals</p>
-                <p className="text-3xl font-bold text-danger-600">
-                  {stats?.late_days || 0}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Total</p>
-              </div>
-              <div className="w-12 h-12 bg-danger-100 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-            </div>
-          </Card>
+          <StatCard
+            title="Paid Leaves"
+            value={leaveBalance?.paidLeavesBalance || 0}
+            subtitle="Available"
+            color="info"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            }
+          />
+          <StatCard
+            title="Pending Leaves"
+            value={leaveBalance?.pendingRequests || 0}
+            subtitle="Requests"
+            color="warning"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+          />
+          <StatCard
+            title="This Month"
+            value={stats?.present_days || 0}
+            subtitle="Days Present"
+            color="success"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+          />
+          <StatCard
+            title="Late Arrivals"
+            value={stats?.late_days || 0}
+            subtitle="Total"
+            color="danger"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            }
+          />
         </div>
 
         {/* Quick Links */}
@@ -465,14 +411,14 @@ export default function DashboardPage() {
           <Link href="/attendance">
             <Card interactive className="h-full">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-primary-50 ring-1 ring-inset ring-primary-100 rounded-2xl flex items-center justify-center flex-shrink-0">
                   <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Attendance History</h3>
-                  <p className="text-sm text-gray-600">View your records</p>
+                  <h3 className="font-semibold text-slate-900 mb-1">Attendance History</h3>
+                  <p className="text-sm text-slate-500">View your records</p>
                 </div>
               </div>
             </Card>
@@ -481,14 +427,14 @@ export default function DashboardPage() {
           <Link href="/leave">
             <Card interactive className="h-full">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-success-50 ring-1 ring-inset ring-success-100 rounded-2xl flex items-center justify-center flex-shrink-0">
                   <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Leave Management</h3>
-                  <p className="text-sm text-gray-600">Apply & track leaves</p>
+                  <h3 className="font-semibold text-slate-900 mb-1">Leave Management</h3>
+                  <p className="text-sm text-slate-500">Apply &amp; track leaves</p>
                 </div>
               </div>
             </Card>
@@ -497,14 +443,14 @@ export default function DashboardPage() {
           <Link href="/profile">
             <Card interactive className="h-full">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-info-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-info-50 ring-1 ring-inset ring-info-100 rounded-2xl flex items-center justify-center flex-shrink-0">
                   <svg className="w-6 h-6 text-info-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">My Profile</h3>
-                  <p className="text-sm text-gray-600">View & update</p>
+                  <h3 className="font-semibold text-slate-900 mb-1">My Profile</h3>
+                  <p className="text-sm text-slate-500">View &amp; update</p>
                 </div>
               </div>
             </Card>
@@ -556,7 +502,7 @@ export default function DashboardPage() {
                         {record.status ? (
                           <Badge status={record.status} />
                         ) : (
-                          <span className="text-gray-400 text-sm">-</span>
+                          <span className="text-slate-400 text-sm">-</span>
                         )}
                       </td>
                     </tr>
@@ -566,7 +512,7 @@ export default function DashboardPage() {
             </div>
           )}
         </Card>
-      </main>
+      </div>
 
       {/* Face Verification Modal (shown when face feature is enabled) */}
       <Modal
@@ -576,7 +522,7 @@ export default function DashboardPage() {
         size="sm"
       >
         <div className="flex flex-col items-center gap-4 py-2">
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-sm text-slate-500 text-center">
             {faceEnrolled
               ? 'Look at the camera to verify your identity and check in.'
               : 'Your face is not enrolled. Please go to your Profile page to set up face recognition first.'}
@@ -637,7 +583,7 @@ export default function DashboardPage() {
         }
       >
         <div className="text-center py-4">
-          <div className={`mx-auto flex items-center justify-center w-14 h-14 rounded-full ${confirmAction === 'checkin' ? 'bg-success-100' : 'bg-danger-100'} mb-4`}>
+          <div className={`mx-auto flex items-center justify-center w-14 h-14 rounded-full ${confirmAction === 'checkin' ? 'bg-success-50 ring-1 ring-inset ring-success-100' : 'bg-danger-50 ring-1 ring-inset ring-danger-100'} mb-4`}>
             {confirmAction === 'checkin' ? (
               <svg className="w-7 h-7 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -648,16 +594,16 @@ export default function DashboardPage() {
               </svg>
             )}
           </div>
-          <p className="text-gray-700 text-lg">
+          <p className="text-slate-700 text-lg">
             Are you sure you want to <span className="font-semibold">{confirmAction === 'checkin' ? 'Check-In' : 'Check-Out'}</span>?
           </p>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-slate-500 text-sm mt-2">
             {confirmAction === 'checkin'
               ? 'This will record your attendance start time for today.'
               : 'This will record your attendance end time for today.'}
           </p>
         </div>
       </Modal>
-    </div>
+    </EmployeeLayout>
   );
 }

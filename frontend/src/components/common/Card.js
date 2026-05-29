@@ -19,13 +19,13 @@ export default function Card({
       {...props}
     >
       {(title || headerAction) && (
-        <div className={`flex items-start justify-between ${!noPadding ? 'mb-4' : 'p-6 pb-4 border-b border-gray-100'}`}>
+        <div className={`flex items-start justify-between ${!noPadding ? 'mb-4' : 'p-6 pb-4 border-b border-slate-100'}`}>
           <div className="flex-1">
             {title && (
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+              <h3 className="text-lg font-bold text-slate-900 tracking-tight">{title}</h3>
             )}
             {subtitle && (
-              <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+              <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
             )}
           </div>
           {headerAction && (

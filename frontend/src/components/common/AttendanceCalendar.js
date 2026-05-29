@@ -18,63 +18,63 @@ import {
 
 const STATUS_COLORS = {
   'on-time': {
-    bg: 'bg-green-500',
-    light: 'bg-green-100',
-    text: 'text-green-700',
-    border: 'border-green-300',
+    bg: 'bg-success-500',
+    light: 'bg-success-100',
+    text: 'text-success-700',
+    border: 'border-success-300',
     label: 'Present',
-    dot: 'bg-green-500',
+    dot: 'bg-success-500',
   },
   present: {
-    bg: 'bg-green-500',
-    light: 'bg-green-100',
-    text: 'text-green-700',
-    border: 'border-green-300',
+    bg: 'bg-success-500',
+    light: 'bg-success-100',
+    text: 'text-success-700',
+    border: 'border-success-300',
     label: 'Present',
-    dot: 'bg-green-500',
+    dot: 'bg-success-500',
   },
   late: {
-    bg: 'bg-yellow-500',
-    light: 'bg-yellow-100',
-    text: 'text-yellow-700',
-    border: 'border-yellow-300',
+    bg: 'bg-warning-500',
+    light: 'bg-warning-100',
+    text: 'text-warning-700',
+    border: 'border-warning-300',
     label: 'Late',
-    dot: 'bg-yellow-500',
+    dot: 'bg-warning-500',
   },
   absent: {
-    bg: 'bg-red-500',
-    light: 'bg-red-100',
-    text: 'text-red-700',
-    border: 'border-red-300',
+    bg: 'bg-danger-500',
+    light: 'bg-danger-100',
+    text: 'text-danger-700',
+    border: 'border-danger-300',
     label: 'Absent',
-    dot: 'bg-red-500',
+    dot: 'bg-danger-500',
   },
   'half-day': {
-    bg: 'bg-orange-500',
-    light: 'bg-orange-100',
-    text: 'text-orange-700',
-    border: 'border-orange-300',
+    bg: 'bg-warning-500',
+    light: 'bg-warning-100',
+    text: 'text-warning-700',
+    border: 'border-warning-300',
     label: 'Half Day',
-    dot: 'bg-orange-500',
+    dot: 'bg-warning-500',
   },
   'on-leave': {
-    bg: 'bg-blue-500',
-    light: 'bg-blue-100',
-    text: 'text-blue-700',
-    border: 'border-blue-300',
+    bg: 'bg-primary-500',
+    light: 'bg-primary-100',
+    text: 'text-primary-700',
+    border: 'border-primary-300',
     label: 'On Leave',
-    dot: 'bg-blue-500',
+    dot: 'bg-primary-500',
   },
 };
 
 function getStatusColor(status) {
   return STATUS_COLORS[status?.toLowerCase()] || {
-    bg: 'bg-gray-400',
-    light: 'bg-gray-100',
-    text: 'text-gray-600',
-    border: 'border-gray-300',
+    bg: 'bg-slate-400',
+    light: 'bg-slate-100',
+    text: 'text-slate-600',
+    border: 'border-slate-300',
     label: status || 'Unknown',
-    dot: 'bg-gray-400',
+    dot: 'bg-slate-400',
   };
 }
 
@@ -153,16 +153,16 @@ export default function AttendanceCalendar({ records = [], onDateClick }) {
       <div className="flex items-center justify-between">
         <button
           onClick={prevMonth}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
           aria-label="Previous month"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
 
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-slate-900">
             {format(currentMonth, 'MMMM yyyy')}
           </h3>
         </div>
@@ -176,10 +176,10 @@ export default function AttendanceCalendar({ records = [], onDateClick }) {
           </button>
           <button
             onClick={nextMonth}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
             aria-label="Next month"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -187,13 +187,13 @@ export default function AttendanceCalendar({ records = [], onDateClick }) {
       </div>
 
       {/* Calendar Grid */}
-      <div className="border border-gray-200 rounded-xl overflow-hidden">
+      <div className="border border-slate-200 rounded-xl overflow-hidden">
         {/* Day Headers */}
-        <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+        <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
           {dayNames.map((dayName) => (
             <div
               key={dayName}
-              className="py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider"
+              className="py-2 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
             >
               {dayName}
             </div>
@@ -202,7 +202,7 @@ export default function AttendanceCalendar({ records = [], onDateClick }) {
 
         {/* Calendar Days */}
         {weeks.map((week, weekIdx) => (
-          <div key={weekIdx} className="grid grid-cols-7 border-b border-gray-100 last:border-0">
+          <div key={weekIdx} className="grid grid-cols-7 border-b border-slate-100 last:border-0">
             {week.map((date, dayIdx) => {
               const dateKey = format(date, 'yyyy-MM-dd');
               const record = attendanceMap[dateKey];
@@ -219,19 +219,19 @@ export default function AttendanceCalendar({ records = [], onDateClick }) {
                   disabled={!inMonth}
                   className={`
                     relative min-h-[60px] sm:min-h-[72px] p-1 sm:p-2 text-left transition-all duration-150
-                    ${!inMonth ? 'bg-gray-50 opacity-40 cursor-default' : 'hover:bg-gray-50 cursor-pointer'}
+                    ${!inMonth ? 'bg-slate-50 opacity-40 cursor-default' : 'hover:bg-slate-50 cursor-pointer'}
                     ${selected ? 'ring-2 ring-primary-500 ring-inset bg-primary-50' : ''}
-                    ${today && !selected ? 'bg-blue-50' : ''}
-                    ${dayIdx < 6 ? 'border-r border-gray-100' : ''}
+                    ${today && !selected ? 'bg-primary-50' : ''}
+                    ${dayIdx < 6 ? 'border-r border-slate-100' : ''}
                   `}
                 >
                   <span
                     className={`
                       text-xs sm:text-sm font-medium
-                      ${!inMonth ? 'text-gray-400' : ''}
+                      ${!inMonth ? 'text-slate-400' : ''}
                       ${today ? 'text-primary-600 font-bold' : ''}
-                      ${isSunday && inMonth ? 'text-red-500' : ''}
-                      ${!today && !isSunday && inMonth ? 'text-gray-700' : ''}
+                      ${isSunday && inMonth ? 'text-danger-500' : ''}
+                      ${!today && !isSunday && inMonth ? 'text-slate-700' : ''}
                     `}
                   >
                     {format(date, 'd')}
@@ -275,21 +275,21 @@ export default function AttendanceCalendar({ records = [], onDateClick }) {
         ).map(([key, color]) => (
           <div key={key} className="flex items-center gap-1.5">
             <span className={`w-3 h-3 rounded-full ${color.dot}`}></span>
-            <span className="text-xs text-gray-600">{color.label}</span>
+            <span className="text-xs text-slate-600">{color.label}</span>
           </div>
         ))}
       </div>
 
       {/* Selected Date Detail Panel */}
       {selectedDate && (
-        <div className="bg-white border border-gray-200 rounded-xl p-4 animate-in">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 animate-in">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="font-semibold text-gray-900">
+            <h4 className="font-semibold text-slate-900">
               {format(selectedDate, 'EEEE, MMMM d, yyyy')}
             </h4>
             <button
               onClick={() => setSelectedDate(null)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-slate-400 hover:text-slate-600 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -300,7 +300,7 @@ export default function AttendanceCalendar({ records = [], onDateClick }) {
           {selectedRecord ? (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Status:</span>
+                <span className="text-sm text-slate-600">Status:</span>
                 {(() => {
                   const sc = getStatusColor(selectedRecord.status);
                   return (
@@ -312,21 +312,21 @@ export default function AttendanceCalendar({ records = [], onDateClick }) {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-0.5">Check In</p>
-                  <p className="text-sm font-semibold text-gray-900">
+                <div className="bg-slate-50 ring-1 ring-inset ring-slate-100 rounded-xl p-3">
+                  <p className="text-xs text-slate-500 mb-0.5">Check In</p>
+                  <p className="text-sm font-semibold text-slate-900 tabular-nums">
                     {formatTimeShort(selectedRecord.check_in_time) || '--:--'}
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-0.5">Check Out</p>
-                  <p className="text-sm font-semibold text-gray-900">
+                <div className="bg-slate-50 ring-1 ring-inset ring-slate-100 rounded-xl p-3">
+                  <p className="text-xs text-slate-500 mb-0.5">Check Out</p>
+                  <p className="text-sm font-semibold text-slate-900 tabular-nums">
                     {formatTimeShort(selectedRecord.check_out_time) || '--:--'}
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-0.5">Total Hours</p>
-                  <p className="text-sm font-semibold text-gray-900">
+                <div className="bg-slate-50 ring-1 ring-inset ring-slate-100 rounded-xl p-3">
+                  <p className="text-xs text-slate-500 mb-0.5">Total Hours</p>
+                  <p className="text-sm font-semibold text-slate-900 tabular-nums">
                     {selectedRecord.total_hours || '--'}
                   </p>
                 </div>
@@ -334,10 +334,10 @@ export default function AttendanceCalendar({ records = [], onDateClick }) {
             </div>
           ) : (
             <div className="text-center py-4">
-              <svg className="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-10 h-10 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              <p className="text-sm text-gray-500">No attendance record for this date</p>
+              <p className="text-sm text-slate-500">No attendance record for this date</p>
             </div>
           )}
         </div>

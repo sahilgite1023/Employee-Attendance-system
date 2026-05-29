@@ -213,7 +213,7 @@ export default function FaceCapture({
   };
 
   // ── Status colour ──────────────────────────────────────────────────────────
-  const overlayColor = faceDetected ? 'border-green-400' : 'border-yellow-400';
+  const overlayColor = faceDetected ? 'border-success-400' : 'border-warning-400';
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -237,7 +237,7 @@ export default function FaceCapture({
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div
             className={`rounded-full border-2 border-dashed transition-colors ${
-              faceDetected ? 'border-green-400' : 'border-white/50'
+              faceDetected ? 'border-success-400' : 'border-white/50'
             }`}
             style={{ width: 160, height: 200 }}
           />
@@ -248,10 +248,10 @@ export default function FaceCapture({
           <span
             className={`px-3 py-1 rounded-full text-xs font-medium text-white ${
               status === 'error'
-                ? 'bg-red-600'
+                ? 'bg-danger-600'
                 : faceDetected
-                ? 'bg-green-600'
-                : 'bg-gray-700/80'
+                ? 'bg-success-600'
+                : 'bg-slate-700/80'
             }`}
           >
             {faceDetected ? '✓ Face detected' : status === 'loading' ? '⏳ Loading…' : '👤 No face'}
@@ -260,18 +260,18 @@ export default function FaceCapture({
       </div>
 
       {/* Status text */}
-      <p className="text-sm text-gray-600 text-center max-w-xs">{statusText}</p>
+      <p className="text-sm text-slate-600 text-center max-w-xs">{statusText}</p>
 
       {/* Enrollment progress bar */}
       {mode === 'enroll' && status === 'detecting' && (
         <div className="w-full max-w-xs">
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <div className="flex justify-between text-xs text-slate-500 mb-1">
             <span>Capturing samples</span>
             <span>{sampleCount}/{enrollSamples}</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-slate-200 rounded-full h-2">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-primary-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${captureProgress}%` }}
             />
           </div>
@@ -283,7 +283,7 @@ export default function FaceCapture({
         <button
           type="button"
           onClick={handleCancel}
-          className="text-sm text-gray-500 hover:text-gray-700 underline"
+          className="text-sm text-slate-500 hover:text-slate-700 underline"
         >
           Cancel
         </button>

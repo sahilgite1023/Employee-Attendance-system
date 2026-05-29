@@ -76,12 +76,12 @@ export default function WorkingTimer({ checkInTime, serverDurationSeconds = 0, s
           <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${pulseColor} opacity-75`}></span>
           <span className={`relative inline-flex rounded-full h-3 w-3 ${pulseColor}`}></span>
         </div>
-        <span className="text-sm font-medium text-gray-600 uppercase tracking-wide">Working Time</span>
+        <span className="text-sm font-medium text-slate-500 uppercase tracking-wide">Working Time</span>
       </div>
-      <div className={`font-mono text-3xl sm:text-4xl font-bold ${timerColor} tracking-wider`}>
+      <div className={`font-mono text-3xl sm:text-4xl font-bold ${timerColor} tracking-wider tabular-nums`}>
         {pad(hours)}:{pad(minutes)}:{pad(seconds)}
       </div>
-      <p className="text-xs text-gray-500 mt-1">
+      <p className="text-xs text-slate-400 mt-1">
         {hours >= 8 ? '✓ Full day completed' : hours >= 4 ? 'Half day reached' : 'Session active'}
       </p>
     </div>

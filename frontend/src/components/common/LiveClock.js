@@ -25,10 +25,10 @@ export default function LiveClock({ className = '' }) {
 
   return (
     <div className={`text-center ${className}`}>
-      <div className="text-3xl sm:text-4xl font-bold text-primary-700 tabular-nums tracking-tight">
+      <div className="text-2xl sm:text-3xl font-bold text-primary-700 tabular-nums tracking-tight">
         {formattedTime}
       </div>
-      <div className="text-sm text-gray-500 mt-1">
+      <div className="text-xs text-slate-400 mt-0.5">
         {formattedDate}
       </div>
     </div>

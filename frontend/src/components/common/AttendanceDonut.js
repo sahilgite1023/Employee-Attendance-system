@@ -16,10 +16,10 @@ export default function AttendanceDonut({ stats = {} }) {
     if (total === 0) return [];
     
     const data = [
-      { label: 'Present', value: present_days, color: '#22c55e' },
-      { label: 'Late', value: late_days, color: '#f59e0b' },
-      { label: 'Absent', value: absent_days, color: '#ef4444' },
-      { label: 'On Leave', value: leave_days, color: '#3b82f6' },
+      { label: 'Present', value: present_days, color: '#10b981' },   // success-500 emerald
+      { label: 'Late', value: late_days, color: '#f59e0b' },          // warning-500 amber
+      { label: 'Absent', value: absent_days, color: '#f43f5e' },      // danger-500 rose
+      { label: 'On Leave', value: leave_days, color: '#6366f1' },     // primary-500 indigo
     ].filter(d => d.value > 0);
 
     let cumulativePercent = 0;
@@ -54,10 +54,10 @@ export default function AttendanceDonut({ stats = {} }) {
   }
 
   const items = [
-    { label: 'Present', value: present_days, color: 'bg-green-500', textColor: 'text-green-600' },
-    { label: 'Late', value: late_days, color: 'bg-yellow-500', textColor: 'text-yellow-600' },
-    { label: 'Absent', value: absent_days, color: 'bg-red-500', textColor: 'text-red-600' },
-    { label: 'On Leave', value: leave_days, color: 'bg-blue-500', textColor: 'text-blue-600' },
+    { label: 'Present', value: present_days, color: 'bg-success-500', textColor: 'text-success-600' },
+    { label: 'Late', value: late_days, color: 'bg-warning-500', textColor: 'text-warning-600' },
+    { label: 'Absent', value: absent_days, color: 'bg-danger-500', textColor: 'text-danger-600' },
+    { label: 'On Leave', value: leave_days, color: 'bg-primary-500', textColor: 'text-primary-600' },
   ];
 
   return (
@@ -89,9 +89,9 @@ export default function AttendanceDonut({ stats = {} }) {
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <span className="text-2xl font-bold text-gray-900">{total}</span>
+            <span className="text-2xl font-bold text-slate-900">{total}</span>
             <br />
-            <span className="text-[10px] text-gray-500 uppercase tracking-wider">Days</span>
+            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Days</span>
           </div>
         </div>
       </div>
@@ -102,7 +102,7 @@ export default function AttendanceDonut({ stats = {} }) {
           <div key={item.label} className="flex items-center gap-2">
             <span className={`w-3 h-3 rounded-full ${item.color} flex-shrink-0`}></span>
             <div>
-              <p className="text-xs text-gray-500">{item.label}</p>
+              <p className="text-xs text-slate-500">{item.label}</p>
               <p className={`text-lg font-bold ${item.textColor}`}>{item.value}</p>
             </div>
           </div>

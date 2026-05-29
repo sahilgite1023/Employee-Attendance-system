@@ -4,7 +4,7 @@ const VALID_VARIANTS = ['success', 'warning', 'danger', 'info', 'primary', 'gray
 
 export default function Badge({ status, text, variant, className = '', children }) {
   if (!status && !text && !variant && !children) {
-    return <span className="text-gray-400 text-sm">-</span>;
+    return <span className="text-slate-400 text-sm">-</span>;
   }
   
   // Determine display text: children > text > getStatusText

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { leaveAPI } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
@@ -10,6 +9,9 @@ import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Badge from '@/components/common/Badge';
 import Input from '@/components/common/Input';
+import Alert from '@/components/common/Alert';
+import StatCard from '@/components/common/StatCard';
+import EmployeeLayout from '@/components/common/EmployeeLayout';
 import Loader from '@/components/common/Loader';
 
 export default function LeavePage() {
@@ -152,165 +154,80 @@ export default function LeavePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader />
-      </div>
+      <EmployeeLayout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <Loader />
+        </div>
+      </EmployeeLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sticky Header with Navigation */}
-      <header className="page-header sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
+    <EmployeeLayout>
+      <div className="space-y-6">
+        {/* Page header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
             <h1 className="page-title">Leave Management</h1>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={logout}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Logout
-              </Button>
-            </div>
+            <p className="page-subtitle mt-1">Apply for leave and track your requests.</p>
           </div>
-          
-          {/* Navigation */}
-          <nav className="mt-4 flex gap-2 border-t border-gray-200 pt-4 overflow-x-auto">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                Dashboard
-              </Button>
-            </Link>
-            <Link href="/attendance">
-              <Button variant="ghost" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                Attendance
-              </Button>
-            </Link>
-            <Link href="/leave">
-              <Button variant="primary" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Leave
-              </Button>
-            </Link>
-            <Link href="/profile">
-              <Button variant="ghost" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Profile
-              </Button>
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Success/Error Messages */}
-        {successMessage && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center">
-              <svg
-                className="w-5 h-5 text-green-500 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <p className="text-sm text-green-700">{successMessage}</p>
-            </div>
-          </div>
-        )}
-
-        {errorMessage && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center">
-              <svg
-                className="w-5 h-5 text-red-500 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <p className="text-sm text-red-700">{errorMessage}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Leave Balance Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">Paid Leaves</p>
-              <p className="text-3xl font-bold text-blue-600">
-                {leaveBalance?.paidLeavesBalance || 0}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Available</p>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">Unpaid Leaves</p>
-              <p className="text-3xl font-bold text-orange-600">
-                {leaveBalance?.unpaidLeavesTaken || 0}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Taken</p>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">Pending</p>
-              <p className="text-3xl font-bold text-yellow-600">
-                {leaveBalance?.pendingRequests || 0}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Requests</p>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">Approved</p>
-              <p className="text-3xl font-bold text-green-600">
-                {leaveBalance?.approvedRequests || 0}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">This Year</p>
-            </div>
-          </Card>
-        </div>
-
-        {/* Apply Leave Button */}
-        <div className="mb-8">
           <Button
-            variant="primary"
+            variant={showApplyForm ? 'secondary' : 'primary'}
             onClick={() => setShowApplyForm(!showApplyForm)}
+            icon={!showApplyForm && (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            )}
           >
             {showApplyForm ? 'Cancel' : 'Apply for Leave'}
           </Button>
         </div>
 
+        {/* Success/Error Messages */}
+        {successMessage && (
+          <Alert type="success" message={successMessage} onClose={() => setSuccessMessage('')} />
+        )}
+        {errorMessage && (
+          <Alert type="danger" message={errorMessage} onClose={() => setErrorMessage('')} />
+        )}
+
+        {/* Leave Balance Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard
+            title="Paid Leaves"
+            value={leaveBalance?.paidLeavesBalance || 0}
+            subtitle="Available"
+            color="primary"
+            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+          />
+          <StatCard
+            title="Unpaid Leaves"
+            value={leaveBalance?.unpaidLeavesTaken || 0}
+            subtitle="Taken"
+            color="warning"
+            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          />
+          <StatCard
+            title="Pending"
+            value={leaveBalance?.pendingRequests || 0}
+            subtitle="Requests"
+            color="info"
+            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+          />
+          <StatCard
+            title="Approved"
+            value={leaveBalance?.approvedRequests || 0}
+            subtitle="This Year"
+            color="success"
+            icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          />
+        </div>
+
         {/* Apply Leave Form */}
         {showApplyForm && (
-          <Card className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <Card>
+            <h2 className="text-xl font-bold text-slate-900 mb-4">
               Apply for Leave
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -339,7 +256,7 @@ export default function LeavePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
                   Reason
                 </label>
                 <textarea
@@ -347,23 +264,21 @@ export default function LeavePage() {
                   value={formData.reason}
                   onChange={handleChange}
                   rows="4"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.reason ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`input ${errors.reason ? 'input-error' : ''}`}
                   placeholder="Please provide a detailed reason for your leave..."
                   disabled={submitting}
                 />
                 {errors.reason && (
-                  <p className="text-red-500 text-sm mt-1">{errors.reason}</p>
+                  <p className="text-danger-600 text-sm mt-1.5">{errors.reason}</p>
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-4">
-                <p className="text-sm text-gray-600">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                <p className="text-sm text-slate-500">
                   {formData.startDate && formData.endDate && (
                     <>
                       Duration:{' '}
-                      <span className="font-semibold">
+                      <span className="font-semibold text-slate-800 tabular-nums">
                         {Math.ceil(
                           (new Date(formData.endDate) -
                             new Date(formData.startDate)) /
@@ -388,63 +303,36 @@ export default function LeavePage() {
         )}
 
         {/* Leave Requests Table */}
-        <Card>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              My Leave Requests
-            </h2>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <Card title="My Leave Requests" noPadding>
+          <div className="table-container border-0">
+            <table className="table">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Start Date
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    End Date
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Days
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Type
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Status
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Reason
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
-                    Actions
-                  </th>
+                <tr>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Days</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Reason</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {leaveRequests && leaveRequests.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="text-center py-12 text-gray-500">
+                    <td colSpan="7" className="text-center py-12 text-slate-500">
                       No leave requests found
                     </td>
                   </tr>
                 ) : (
                   leaveRequests && leaveRequests.map((request) => (
-                    <tr
-                      key={request.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-3 px-4 text-sm text-gray-900">
+                    <tr key={request.id}>
+                      <td className="font-medium text-slate-900">
                         {formatDate(request.start_date)}
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-900">
-                        {formatDate(request.end_date)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-900">
-                        {request.total_days}
-                      </td>
-                      <td className="py-3 px-4 text-sm">
+                      <td>{formatDate(request.end_date)}</td>
+                      <td className="tabular-nums">{request.total_days}</td>
+                      <td>
                         <Badge
                           variant={
                             request.leave_type === 'paid' ? 'success' : 'warning'
@@ -453,13 +341,13 @@ export default function LeavePage() {
                           {request.leave_type}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4">
+                      <td>
                         <Badge variant={request.status}>{request.status}</Badge>
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-600 max-w-xs truncate">
+                      <td className="text-slate-500 max-w-xs truncate">
                         {request.reason}
                       </td>
-                      <td className="py-3 px-4">
+                      <td>
                         {request.status === 'pending' && (
                           <Button
                             variant="danger"
@@ -472,7 +360,7 @@ export default function LeavePage() {
                         {request.status === 'rejected' &&
                           request.rejection_reason && (
                             <span
-                              className="text-xs text-red-600 cursor-help"
+                              className="text-xs text-danger-600 cursor-help"
                               title={request.rejection_reason}
                             >
                               View Reason
@@ -486,7 +374,7 @@ export default function LeavePage() {
             </table>
           </div>
         </Card>
-      </main>
-    </div>
+      </div>
+    </EmployeeLayout>
   );
 }
