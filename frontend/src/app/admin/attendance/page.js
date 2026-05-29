@@ -23,6 +23,7 @@ export default function AdminAttendancePage() {
     status: '',
   });
   const [departments, setDepartments] = useState([]);
+  const [revokingId, setRevokingId] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -74,6 +75,26 @@ export default function AdminAttendancePage() {
     a.download = `attendance-${filters.date}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleRevokeCheckOut = async (record) => {
+    if (!record?.id || !record?.check_out_time) return;
+
+    const confirmed = window.confirm(
+      `Revoke checkout for ${record.first_name} ${record.last_name} on ${formatDate(record.attendance_date)}?`
+    );
+    if (!confirmed) return;
+
+    try {
+      setRevokingId(record.id);
+      await attendanceAPI.revokeCheckOut(record.id);
+      await loadAttendance();
+      alert('Checkout revoked successfully');
+    } catch (error) {
+      alert(error?.message || 'Failed to revoke checkout');
+    } finally {
+      setRevokingId(null);
+    }
   };
 
   const stats = {
@@ -147,11 +168,12 @@ export default function AdminAttendancePage() {
                 <th className="text-left py-2 px-3">Check Out</th>
                 <th className="text-left py-2 px-3">Hours</th>
                 <th className="text-left py-2 px-3">Status</th>
+                <th className="text-left py-2 px-3">Actions</th>
               </tr>
             </thead>
             <tbody>
               {records.length === 0 ? (
-                <tr><td colSpan="8" className="text-center py-8 text-gray-500">No records found</td></tr>
+                <tr><td colSpan="9" className="text-center py-8 text-gray-500">No records found</td></tr>
               ) : (
                 records.map(r => (
                   <tr key={`${r.employee_id}-${r.attendance_date}`} className="border-b hover:bg-gray-50">
@@ -166,6 +188,21 @@ export default function AdminAttendancePage() {
                       <Badge variant={r.status === 'present' ? 'success' : r.status === 'late' ? 'warning' : r.status === 'absent' ? 'danger' : 'info'}>
                         {r.status}
                       </Badge>
+                    </td>
+                    <td className="py-2 px-3">
+                      {r.check_out_time ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          loading={revokingId === r.id}
+                          disabled={revokingId !== null && revokingId !== r.id}
+                          onClick={() => handleRevokeCheckOut(r)}
+                        >
+                          Revoke Checkout
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
                     </td>
                   </tr>
                 ))

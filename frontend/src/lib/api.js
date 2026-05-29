@@ -109,6 +109,7 @@ export const attendanceAPI = {
   getHistory: (params) => api.get('/attendance/history', { params }),
   getStats: () => api.get('/attendance/stats'),
   getAll: (params) => api.get('/attendance/all', { params }),
+  revokeCheckOut: (attendanceId) => api.post(`/attendance/${attendanceId}/revoke-check-out`),
 };
 
 // ============================================

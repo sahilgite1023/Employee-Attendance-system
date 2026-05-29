@@ -383,3 +383,73 @@ exports.getAllAttendance = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * @route   POST /api/attendance/:id/revoke-check-out
+ * @desc    Revoke checkout for a specific attendance record (Admin only)
+ * @access  Private (Admin)
+ */
+exports.revokeCheckOut = async (req, res, next) => {
+  try {
+    const attendanceId = parseInt(req.params.id, 10);
+
+    if (!attendanceId || Number.isNaN(attendanceId)) {
+      return sendError(res, 'Valid attendance record ID is required', 400);
+    }
+
+    const existing = await db.query(
+      `SELECT id, employee_id, attendance_date, check_in_time, check_out_time, status, is_late, late_by_minutes
+       FROM attendance
+       WHERE id = $1`,
+      [attendanceId]
+    );
+
+    if (existing.rows.length === 0) {
+      return sendError(res, 'Attendance record not found', 404);
+    }
+
+    const attendance = existing.rows[0];
+
+    if (!attendance.check_in_time) {
+      return sendError(res, 'Cannot revoke checkout for a record without check-in', 400);
+    }
+
+    if (!attendance.check_out_time) {
+      return sendError(res, 'Checkout is already open for this record', 400);
+    }
+
+    const settings = await getSettingsWithDefaults(config);
+    const shouldBeLate = attendance.is_late && attendance.late_by_minutes > settings.LATE_THRESHOLD_MINUTES;
+    const reopenedStatus = shouldBeLate ? 'late' : 'present';
+
+    const updated = await db.query(
+      `UPDATE attendance
+       SET check_out_time = NULL,
+           total_hours = 0,
+           check_out_ip = NULL,
+           status = $1
+       WHERE id = $2
+       RETURNING *`,
+      [reopenedStatus, attendanceId]
+    );
+
+    await createAuditLog(
+      req.user.id,
+      'CHECK_OUT_REVOKED',
+      'attendance',
+      attendanceId,
+      {
+        employeeId: attendance.employee_id,
+        attendanceDate: attendance.attendance_date,
+        previousCheckOutTime: attendance.check_out_time,
+        previousStatus: attendance.status,
+        newStatus: reopenedStatus,
+      },
+      req
+    );
+
+    sendSuccess(res, 'Checkout revoked successfully', updated.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};

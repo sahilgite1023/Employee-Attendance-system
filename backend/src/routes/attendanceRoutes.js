@@ -8,6 +8,7 @@ const {
   getAttendanceHistory,
   getAttendanceStats,
   getAllAttendance,
+  revokeCheckOut,
 } = require('../controllers/attendanceController');
 const { protect, authorize } = require('../middleware/auth');
 const { dbIpRestriction } = require('../middleware/dbIpRestriction');
@@ -67,5 +68,13 @@ router.get('/stats', protect, getAttendanceStats);
  * @note    No IP restriction applied
  */
 router.get('/all', protect, authorize('admin'), getAllAttendance);
+
+/**
+ * @route   POST /api/attendance/:id/revoke-check-out
+ * @desc    Revoke checkout for a specific attendance record (Admin only)
+ * @access  Private (Admin)
+ * @note    No IP restriction applied
+ */
+router.post('/:id/revoke-check-out', protect, authorize('admin'), revokeCheckOut);
 
 module.exports = router;
