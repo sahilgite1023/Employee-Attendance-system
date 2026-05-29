@@ -11,6 +11,11 @@ const {
   updateProfile,
   logout,
 } = require('../controllers/authController');
+const {
+  enrollFace,
+  removeFace,
+  getFaceStatus,
+} = require('../controllers/faceController');
 const { protect } = require('../middleware/auth');
 
 /**
@@ -95,5 +100,30 @@ router.put('/profile', protect, updateProfile);
  * @access  Private
  */
 router.post('/logout', protect, logout);
+
+// ============================================
+// FACE RECOGNITION ROUTES
+// ============================================
+
+/**
+ * @route   GET /api/auth/face/status
+ * @desc    Check if current user has face enrolled
+ * @access  Private
+ */
+router.get('/face/status', protect, getFaceStatus);
+
+/**
+ * @route   POST /api/auth/face/enroll
+ * @desc    Enroll face for current user
+ * @access  Private
+ */
+router.post('/face/enroll', protect, enrollFace);
+
+/**
+ * @route   DELETE /api/auth/face/enroll
+ * @desc    Remove face enrollment for current user
+ * @access  Private
+ */
+router.delete('/face/enroll', protect, removeFace);
 
 module.exports = router;

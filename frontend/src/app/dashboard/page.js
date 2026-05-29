@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { attendanceAPI, leaveAPI } from '@/lib/api';
+import { attendanceAPI, leaveAPI, faceAPI } from '@/lib/api';
 import { formatTime, getGreeting } from '@/lib/utils';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
@@ -15,6 +15,9 @@ import Alert from '@/components/common/Alert';
 import Modal from '@/components/common/Modal';
 import LiveClock from '@/components/common/LiveClock';
 import WorkingTimer from '@/components/common/WorkingTimer';
+
+// Lazy-load FaceCapture so face-api models are only fetched when needed
+const FaceCapture = lazy(() => import('@/components/common/FaceCapture'));
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -31,6 +34,12 @@ export default function DashboardPage() {
   const [confirmAction, setConfirmAction] = useState(null); // 'checkin' | 'checkout' | null
   const [currentSession, setCurrentSession] = useState(null); // live session data for timer
 
+  // Face verification state
+  const [faceEnabled, setFaceEnabled] = useState(false);   // whether feature is on
+  const [faceEnrolled, setFaceEnrolled] = useState(false); // whether this user has enrolled
+  const [showFaceModal, setShowFaceModal] = useState(false);
+  const [faceModalKey, setFaceModalKey] = useState(0); // remount FaceCapture on retry
+
   useEffect(() => {
     if (authLoading) return; // Wait for auth check to complete
     if (!user) {
@@ -44,6 +53,7 @@ export default function DashboardPage() {
     }
 
     loadDashboardData();
+    loadFaceStatus();
   }, [user, router, authLoading]);
 
   const loadDashboardData = async () => {
@@ -90,11 +100,42 @@ export default function DashboardPage() {
     }
   };
 
-  const handleCheckIn = async () => {
+  // Load face verification status (is feature on? is user enrolled?)
+  const loadFaceStatus = async () => {
+    try {
+      const res = await faceAPI.getStatus();
+      if (res?.data) {
+        setFaceEnabled(res.data.featureEnabled || false);
+        setFaceEnrolled(res.data.enrolled || false);
+      }
+    } catch {
+      // Non-critical — face status failure shouldn't break the dashboard
+    }
+  };
+
+  // Called when Check In button is clicked
+  const handleCheckInClick = () => {
+    if (faceEnabled) {
+      // Open face verification modal instead of simple confirm
+      setFaceModalKey((k) => k + 1); // remount FaceCapture fresh
+      setShowFaceModal(true);
+    } else {
+      setConfirmAction('checkin');
+    }
+  };
+
+  // Called after face verification succeeds with the captured descriptor
+  const handleFaceVerified = async (descriptor) => {
+    setShowFaceModal(false);
+    await handleCheckIn(descriptor);
+  };
+
+  const handleCheckIn = async (faceDescriptor) => {
     try {
       setCheckInLoading(true);
       setErrorMessage('');
-      const result = await attendanceAPI.checkIn();
+      const payload = faceDescriptor ? { faceDescriptor } : {};
+      const result = await attendanceAPI.checkIn(payload);
       if (result?.data) {
         setTodayAttendance(result.data);
       }
@@ -103,10 +144,16 @@ export default function DashboardPage() {
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Check-in error:', error);
-      const errorMsg = error?.message || error?.response?.data?.message || 'Failed to check in. Please try again.';
-      const errorCode = error?.code || error?.response?.data?.code;
+      const errorMsg = error?.message || 'Failed to check in. Please try again.';
+      const errorCode = error?.code;
       if (errorCode === 'IP_RESTRICTED') {
         setErrorMessage('🔒 Attendance can only be marked from the office network. Connect to office Wi-Fi and try again.');
+      } else if (errorCode === 'FACE_MISMATCH') {
+        setErrorMessage('🔍 Face not recognized. Please ensure good lighting and face the camera directly, then try again.');
+      } else if (errorCode === 'FACE_NOT_ENROLLED') {
+        setErrorMessage('📷 Your face is not enrolled yet. Please go to your Profile page to set up face recognition.');
+      } else if (errorCode === 'FACE_REQUIRED') {
+        setErrorMessage('📷 Face verification is required. Please allow camera access and try again.');
       } else {
         setErrorMessage(errorMsg);
       }
@@ -292,7 +339,7 @@ export default function DashboardPage() {
                   <Button
                     variant="success"
                     size="lg"
-                    onClick={() => setConfirmAction('checkin')}
+                    onClick={handleCheckInClick}
                     loading={checkInLoading}
                     disabled={checkInLoading}
                     icon={
@@ -521,7 +568,43 @@ export default function DashboardPage() {
         </Card>
       </main>
 
-      {/* Confirmation Modal for Check-In / Check-Out */}
+      {/* Face Verification Modal (shown when face feature is enabled) */}
+      <Modal
+        isOpen={showFaceModal}
+        onClose={() => { setShowFaceModal(false); setCheckInLoading(false); }}
+        title="Face Verification"
+        size="sm"
+      >
+        <div className="flex flex-col items-center gap-4 py-2">
+          <p className="text-sm text-gray-600 text-center">
+            {faceEnrolled
+              ? 'Look at the camera to verify your identity and check in.'
+              : 'Your face is not enrolled. Please go to your Profile page to set up face recognition first.'}
+          </p>
+
+          {faceEnrolled ? (
+            <Suspense fallback={<div className="flex items-center justify-center h-40"><Loader text="Loading camera…" /></div>}>
+              <FaceCapture
+                key={faceModalKey}
+                mode="verify"
+                onCapture={handleFaceVerified}
+                onError={(msg) => {
+                  setShowFaceModal(false);
+                  setErrorMessage(msg);
+                }}
+                onCancel={() => setShowFaceModal(false)}
+              />
+            </Suspense>
+          ) : (
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowFaceModal(false)}>Cancel</Button>
+              <Button variant="primary" onClick={() => router.push('/profile')}>Go to Profile</Button>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Confirmation Modal for Check-In (when face is disabled) / Check-Out */}
       <Modal
         isOpen={!!confirmAction}
         onClose={() => setConfirmAction(null)}

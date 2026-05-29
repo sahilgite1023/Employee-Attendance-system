@@ -102,7 +102,7 @@ export const authAPI = {
 // ATTENDANCE APIs
 // ============================================
 export const attendanceAPI = {
-  checkIn: () => api.post('/attendance/check-in'),
+  checkIn: (payload) => api.post('/attendance/check-in', payload || {}),
   checkOut: () => api.post('/attendance/check-out'),
   getTodayAttendance: () => api.get('/attendance/today'),
   getCurrentSession: () => api.get('/attendance/current-session'),
@@ -110,6 +110,18 @@ export const attendanceAPI = {
   getStats: () => api.get('/attendance/stats'),
   getAll: (params) => api.get('/attendance/all', { params }),
   revokeCheckOut: (attendanceId) => api.post(`/attendance/${attendanceId}/revoke-check-out`),
+};
+
+// ============================================
+// FACE RECOGNITION APIs
+// ============================================
+export const faceAPI = {
+  getStatus: () => api.get('/auth/face/status'),
+  enroll: (descriptor) => api.post('/auth/face/enroll', { descriptor }),
+  remove: () => api.delete('/auth/face/enroll'),
+  adminEnroll: (employeeId, descriptor) =>
+    api.post(`/admin/employees/${employeeId}/face`, { descriptor }),
+  adminRemove: (employeeId) => api.delete(`/admin/employees/${employeeId}/face`),
 };
 
 // ============================================

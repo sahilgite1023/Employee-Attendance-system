@@ -1,14 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { authAPI } from '@/lib/api';
+import { authAPI, faceAPI } from '@/lib/api';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Input from '@/components/common/Input';
 import Loader from '@/components/common/Loader';
+import Modal from '@/components/common/Modal';
+
+const FaceCapture = lazy(() => import('@/components/common/FaceCapture'));
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -24,12 +27,64 @@ export default function ProfilePage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Face enrollment state
+  const [faceEnrolled, setFaceEnrolled] = useState(false);
+  const [faceEnrolledAt, setFaceEnrolledAt] = useState(null);
+  const [showFaceModal, setShowFaceModal] = useState(false);
+  const [faceModalKey, setFaceModalKey] = useState(0);
+  const [faceLoading, setFaceLoading] = useState(false);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
       router.push('/login');
+      return;
     }
+    loadFaceStatus();
   }, [user, router, authLoading]);
+
+  const loadFaceStatus = async () => {
+    try {
+      const res = await faceAPI.getStatus();
+      setFaceEnrolled(res?.data?.enrolled || false);
+      setFaceEnrolledAt(res?.data?.enrolledAt || null);
+    } catch {
+      // Non-critical
+    }
+  };
+
+  const handleFaceEnrolled = async (descriptor) => {
+    setFaceLoading(true);
+    try {
+      await faceAPI.enroll(descriptor);
+      setShowFaceModal(false);
+      setFaceEnrolled(true);
+      setFaceEnrolledAt(new Date().toISOString());
+      setSuccessMessage('✓ Face enrolled successfully! You can now use face verification to check in.');
+      setTimeout(() => setSuccessMessage(''), 5000);
+    } catch (err) {
+      setShowFaceModal(false);
+      setErrorMessage(err?.message || 'Failed to save face enrollment. Please try again.');
+    } finally {
+      setFaceLoading(false);
+    }
+  };
+
+  const handleRemoveFace = async () => {
+    if (!confirm('Remove your face enrollment? You will need to re-enroll to use face check-in.')) return;
+    setFaceLoading(true);
+    try {
+      await faceAPI.remove();
+      setFaceEnrolled(false);
+      setFaceEnrolledAt(null);
+      setSuccessMessage('Face enrollment removed.');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setErrorMessage(err?.message || 'Failed to remove face enrollment.');
+    } finally {
+      setFaceLoading(false);
+    }
+  };
 
   const validatePasswordForm = () => {
     const newErrors = {};
@@ -382,9 +437,52 @@ export default function ProfilePage() {
           </div>
         </Card>
 
+        {/* Face Recognition Card */}
+        <Card className="mb-8">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Face Recognition</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Enroll your face to enable face verification during check-in.
+              </p>
+            </div>
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+              faceEnrolled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+            }`}>
+              {faceEnrolled ? '✓ Enrolled' : 'Not enrolled'}
+            </div>
+          </div>
+
+          {faceEnrolled && faceEnrolledAt && (
+            <p className="text-xs text-gray-500 mb-4">
+              Enrolled on {new Date(faceEnrolledAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+          )}
+
+          <div className="flex gap-3">
+            <Button
+              variant={faceEnrolled ? 'outline' : 'primary'}
+              onClick={() => { setFaceModalKey((k) => k + 1); setShowFaceModal(true); }}
+              loading={faceLoading}
+              disabled={faceLoading}
+            >
+              {faceEnrolled ? '🔄 Re-enroll Face' : '📷 Enroll Face'}
+            </Button>
+            {faceEnrolled && (
+              <Button
+                variant="danger"
+                onClick={handleRemoveFace}
+                loading={faceLoading}
+                disabled={faceLoading}
+              >
+                Remove
+              </Button>
+            )}
+          </div>
+        </Card>
+
         {/* Change Password Card */}
-        <Card>
-          <div className="flex justify-between items-center mb-4">
+        <Card>          <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Security</h2>
             {!showChangePassword && (
               <Button
@@ -459,6 +557,33 @@ export default function ProfilePage() {
           )}
         </Card>
       </main>
+
+      {/* Face Enrollment Modal */}
+      <Modal
+        isOpen={showFaceModal}
+        onClose={() => setShowFaceModal(false)}
+        title="Enroll Your Face"
+        size="sm"
+      >
+        <div className="flex flex-col items-center gap-4 py-2">
+          <p className="text-sm text-gray-600 text-center">
+            Look directly at the camera and hold still. We&apos;ll capture several frames to build an accurate profile.
+          </p>
+          <Suspense fallback={<div className="flex items-center justify-center h-40"><Loader text="Loading camera…" /></div>}>
+            <FaceCapture
+              key={faceModalKey}
+              mode="enroll"
+              enrollSamples={5}
+              onCapture={handleFaceEnrolled}
+              onError={(msg) => {
+                setShowFaceModal(false);
+                setErrorMessage(msg);
+              }}
+              onCancel={() => setShowFaceModal(false)}
+            />
+          </Suspense>
+        </div>
+      </Modal>
     </div>
   );
 }

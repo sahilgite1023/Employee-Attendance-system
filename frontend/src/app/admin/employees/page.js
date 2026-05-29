@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { adminAPI } from '@/lib/api';
+import { adminAPI, faceAPI } from '@/lib/api';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
@@ -12,6 +12,8 @@ import Input from '@/components/common/Input';
 import PhoneInput from '@/components/common/PhoneInput';
 import Modal from '@/components/common/Modal';
 import Loader from '@/components/common/Loader';
+
+const FaceCapture = lazy(() => import('@/components/common/FaceCapture'));
 
 const departments = ['Engineering', 'Development', 'Quality Assurance', 'DevOps', 'Human Resources', 'Finance', 'Marketing', 'Sales', 'Operations', 'Customer Support', 'Product Management', 'Design', 'Administration'];
 
@@ -47,6 +49,12 @@ export default function AdminEmployeesPage() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+
+  // Face enrollment state (admin can enroll on behalf of employee)
+  const [showFaceModal, setShowFaceModal] = useState(false);
+  const [faceModalKey, setFaceModalKey] = useState(0);
+  const [faceLoading, setFaceLoading] = useState(false);
+  const [faceTargetEmployee, setFaceTargetEmployee] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -186,8 +194,38 @@ export default function AdminEmployeesPage() {
     }
   };
 
-  const filtered = employees
-    .filter((e) =>
+  const handleAdminFaceEnroll = async (descriptor) => {
+    if (!faceTargetEmployee) return;
+    setFaceLoading(true);
+    try {
+      await faceAPI.adminEnroll(faceTargetEmployee.id, descriptor);
+      setShowFaceModal(false);
+      setMessage({ type: 'success', text: `Face enrolled for ${faceTargetEmployee.first_name} ${faceTargetEmployee.last_name}` });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    } catch (err) {
+      setShowFaceModal(false);
+      setMessage({ type: 'error', text: err?.message || 'Failed to enroll face' });
+    } finally {
+      setFaceLoading(false);
+    }
+  };
+
+  const handleAdminRemoveFace = async () => {
+    if (!editingEmployee) return;
+    if (!confirm(`Remove face enrollment for ${editingEmployee.first_name} ${editingEmployee.last_name}?`)) return;
+    setFaceLoading(true);
+    try {
+      await faceAPI.adminRemove(editingEmployee.id);
+      setMessage({ type: 'success', text: 'Face enrollment removed' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    } catch (err) {
+      setMessage({ type: 'error', text: err?.message || 'Failed to remove face enrollment' });
+    } finally {
+      setFaceLoading(false);
+    }
+  };
+
+  const filtered = employees    .filter((e) =>
       `${e.first_name} ${e.last_name} ${e.employee_id} ${e.email}`.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
@@ -316,6 +354,41 @@ export default function AdminEmployeesPage() {
             </div>
           </div>
 
+          {/* Face Recognition */}
+          <div className="pt-4 border-t">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Face Recognition</label>
+                <p className="text-xs text-gray-500">Enroll or reset this employee&apos;s face for check-in verification</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFaceTargetEmployee(editingEmployee);
+                    setShowEditModal(false);
+                    setFaceModalKey((k) => k + 1);
+                    setShowFaceModal(true);
+                  }}
+                  disabled={faceLoading}
+                >
+                  📷 Enroll Face
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAdminRemoveFace}
+                  disabled={faceLoading}
+                >
+                  Remove
+                </Button>
+              </div>
+            </div>
+          </div>
+
           {/* Status Toggle */}
           <div className="pt-4 border-t">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -402,6 +475,33 @@ export default function AdminEmployeesPage() {
           </table>
         </div>
       </Card>
+
+      {/* Admin Face Enrollment Modal */}
+      <Modal
+        isOpen={showFaceModal}
+        onClose={() => { setShowFaceModal(false); setFaceTargetEmployee(null); }}
+        title={`Enroll Face — ${faceTargetEmployee?.first_name || ''} ${faceTargetEmployee?.last_name || ''}`}
+        size="sm"
+      >
+        <div className="flex flex-col items-center gap-4 py-2">
+          <p className="text-sm text-gray-600 text-center">
+            Have the employee look directly at the camera. Hold still while we capture their face.
+          </p>
+          <Suspense fallback={<div className="flex items-center justify-center h-40"><Loader text="Loading camera…" /></div>}>
+            <FaceCapture
+              key={faceModalKey}
+              mode="enroll"
+              enrollSamples={5}
+              onCapture={handleAdminFaceEnroll}
+              onError={(msg) => {
+                setShowFaceModal(false);
+                setMessage({ type: 'error', text: msg });
+              }}
+              onCancel={() => setShowFaceModal(false)}
+            />
+          </Suspense>
+        </div>
+      </Modal>
     </AdminLayout>
   );
 }

@@ -110,6 +110,8 @@ exports.updateSetting = async (req, res, next) => {
         return sendError(res, 'Invalid time format. Use HH:MM', 400);
       }
       validatedValue = value;
+    } else if (setting.setting_type === 'boolean') {
+      validatedValue = value === 'true' || value === true ? 'true' : 'false';
     }
 
     // Update setting
@@ -196,6 +198,8 @@ exports.bulkUpdateSettings = async (req, res, next) => {
           await client.query('ROLLBACK');
           return sendError(res, `Invalid time format for ${key}. Use HH:MM`, 400);
         }
+      } else if (setting.setting_type === 'boolean') {
+        validatedValue = value === 'true' || value === true ? 'true' : 'false';
       }
 
       // Update setting
@@ -256,6 +260,8 @@ exports.resetToDefaults = async (req, res, next) => {
       HALF_DAY_HOURS: '4',
       FULL_DAY_HOURS: '8',
       ANNUAL_PAID_LEAVES: '7',
+      ENABLE_FACE_VERIFICATION: 'false',
+      FACE_MATCH_THRESHOLD: '50',
     };
 
     const updated = [];

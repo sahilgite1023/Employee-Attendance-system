@@ -29,6 +29,10 @@ const {
   bulkUpdateSettings,
   resetToDefaults,
 } = require('../controllers/settingsController');
+const {
+  adminEnrollFace,
+  adminRemoveFace,
+} = require('../controllers/faceController');
 const { protect, authorize } = require('../middleware/auth');
 
 // All routes require admin role
@@ -214,5 +218,23 @@ router.put('/settings-bulk/update', bulkUpdateSettings);
  * @access  Private (Admin)
  */
 router.post('/settings/reset', resetToDefaults);
+
+// ============================================
+// FACE RECOGNITION ADMIN ROUTES
+// ============================================
+
+/**
+ * @route   POST /api/admin/employees/:id/face
+ * @desc    Admin enrolls face for a specific employee
+ * @access  Private (Admin)
+ */
+router.post('/employees/:id/face', adminEnrollFace);
+
+/**
+ * @route   DELETE /api/admin/employees/:id/face
+ * @desc    Admin removes face enrollment for a specific employee
+ * @access  Private (Admin)
+ */
+router.delete('/employees/:id/face', adminRemoveFace);
 
 module.exports = router;

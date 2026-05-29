@@ -96,6 +96,53 @@ export default function SettingsPage() {
     }
   };
 
+  // Render a single setting field based on its type
+  const renderSettingField = (setting) => {
+    const key = setting.setting_key;
+    const type = setting.setting_type;
+
+    if (type === 'boolean') {
+      const isOn = formData[key] === 'true' || formData[key] === true;
+      return (
+        <div key={key} className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              {setting.description}
+            </label>
+            <span className="text-xs text-gray-500">{key}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleChange(key, isOn ? 'false' : 'true')}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              isOn ? 'bg-green-500' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                isOn ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div key={key}>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {setting.description}
+        </label>
+        <Input
+          type={type === 'time' ? 'time' : 'number'}
+          value={formData[key] || ''}
+          onChange={(e) => handleChange(key, e.target.value)}
+          min={type === 'number' ? '0' : undefined}
+        />
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -111,7 +158,7 @@ export default function SettingsPage() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">System Settings</h2>
         <p className="text-gray-600 mt-1">
-          Configure attendance and leave rules
+          Configure attendance, leave, and security rules
         </p>
       </div>
 
@@ -129,19 +176,7 @@ export default function SettingsPage() {
             Attendance Rules
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {settings.attendance.map((setting) => (
-              <div key={setting.setting_key}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {setting.description}
-                </label>
-                <Input
-                  type={setting.setting_type === 'time' ? 'time' : 'number'}
-                  value={formData[setting.setting_key] || ''}
-                  onChange={(e) => handleChange(setting.setting_key, e.target.value)}
-                  min={setting.setting_type === 'number' ? '0' : undefined}
-                />
-              </div>
-            ))}
+            {settings.attendance.map((setting) => renderSettingField(setting))}
           </div>
         </Card>
       )}
@@ -152,19 +187,21 @@ export default function SettingsPage() {
             Leave Rules
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {settings.leave.map((setting) => (
-              <div key={setting.setting_key}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {setting.description}
-                </label>
-                <Input
-                  type="number"
-                  value={formData[setting.setting_key] || ''}
-                  onChange={(e) => handleChange(setting.setting_key, e.target.value)}
-                  min="0"
-                />
-              </div>
-            ))}
+            {settings.leave.map((setting) => renderSettingField(setting))}
+          </div>
+        </Card>
+      )}
+
+      {settings.security && (
+        <Card className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            🔒 Security & Face Verification
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Control face recognition requirements for employee check-in.
+          </p>
+          <div className="space-y-4">
+            {settings.security.map((setting) => renderSettingField(setting))}
           </div>
         </Card>
       )}
@@ -181,6 +218,7 @@ export default function SettingsPage() {
       <Card className="mt-6 bg-blue-50 border-blue-200">
         <p className="text-sm text-blue-900">
           <strong>Note:</strong> Changes take effect immediately. Time format: HH:MM (24-hour).
+          Face match threshold: 30 = very strict, 50 = balanced, 70 = lenient.
         </p>
       </Card>
     </AdminLayout>

@@ -12,14 +12,16 @@ const {
 } = require('../controllers/attendanceController');
 const { protect, authorize } = require('../middleware/auth');
 const { dbIpRestriction } = require('../middleware/dbIpRestriction');
+const { faceVerification } = require('../middleware/faceVerification');
 
 /**
  * @route   POST /api/attendance/check-in
  * @desc    Check in for the day
  * @access  Private (Employee)
  * @middleware dbIpRestriction - DB-based IP restriction (admin-managed)
+ * @middleware faceVerification - Face recognition check (when enabled)
  */
-router.post('/check-in', protect, dbIpRestriction('CHECK_IN'), checkIn);
+router.post('/check-in', protect, dbIpRestriction('CHECK_IN'), faceVerification, checkIn);
 
 /**
  * @route   POST /api/attendance/check-out
