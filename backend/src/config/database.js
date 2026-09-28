@@ -18,8 +18,7 @@ pool.on('connect', () => {
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected database error:', err);
-  process.exit(-1);
+  console.error('Unexpected database idle client error (client discarded):', err.message || err);
 });
 
 // Query helper with error handling
