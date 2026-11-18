@@ -262,6 +262,7 @@ exports.resetToDefaults = async (req, res, next) => {
       ANNUAL_PAID_LEAVES: '7',
       ENABLE_FACE_VERIFICATION: 'false',
       FACE_MATCH_THRESHOLD: '50',
+      ENABLE_IP_RESTRICTION: 'true',
     };
 
     const updated = [];

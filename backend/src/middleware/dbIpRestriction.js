@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { getSetting } = require('../utils/settingsCache');
 
 /**
  * ============================================
@@ -134,10 +135,15 @@ const dbIpRestriction = (action = 'CHECK_IN') => {
   return async (req, res, next) => {
     const clientIP = getClientIP(req);
 
-    // If ENABLE_SELECTIVE_IP_RESTRICTION env var is explicitly set to 'false', skip DB check
-    // This allows disabling the feature entirely without touching the DB
-    if (process.env.ENABLE_SELECTIVE_IP_RESTRICTION === 'false') {
-      console.log(`[IP Security] SKIPPED (disabled via env): ${clientIP} → ${action}`);
+    // Check if IP restriction is disabled via database setting or env
+    const ipSetting = await getSetting('ENABLE_IP_RESTRICTION', null);
+    const isEnabled = ipSetting !== null
+      ? Boolean(ipSetting)
+      : process.env.ENABLE_SELECTIVE_IP_RESTRICTION !== 'false';
+
+    if (!isEnabled) {
+      console.log(`[IP Security] SKIPPED (disabled via setting/env): ${clientIP} → ${action}`);
+      req.clientIP = clientIP;
       return next();
     }
 

@@ -229,7 +229,8 @@ INSERT INTO system_settings (setting_key, setting_value, setting_type, category,
 ('company_name', 'Your Company Name', 'string', 'general', 'Company name for display'),
 ('company_email', 'hr@company.com', 'string', 'general', 'Company HR email'),
 ('ENABLE_FACE_VERIFICATION', 'false', 'boolean', 'security', 'Require face verification before check-in'),
-('FACE_MATCH_THRESHOLD', '50', 'number', 'security', 'Face match sensitivity (lower = stricter, range 30-70)');
+('FACE_MATCH_THRESHOLD', '50', 'number', 'security', 'Face match sensitivity (lower = stricter, range 30-70)'),
+('ENABLE_IP_RESTRICTION', 'true', 'boolean', 'security', 'Require office network IP for check-in and check-out');
 
 -- ================================================
 -- VIEWS FOR REPORTING

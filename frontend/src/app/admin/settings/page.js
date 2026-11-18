@@ -188,7 +188,7 @@ export default function SettingsPage() {
         )}
 
         {settings.security && (
-          <Card title="Security & Face Verification" subtitle="Control face recognition requirements for employee check-in.">
+          <Card title="Security & Access Control" subtitle="Control office network IP restrictions and face recognition verification for check-in.">
             <div className="space-y-4">
               {settings.security.map((setting) => renderSettingField(setting))}
             </div>
