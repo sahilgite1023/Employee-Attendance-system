@@ -48,6 +48,10 @@ CREATE TABLE employees (
     reset_password_token VARCHAR(255),
     reset_password_expire TIMESTAMP,
     
+    -- Face Recognition
+    face_descriptor JSONB,
+    face_enrolled_at TIMESTAMP,
+    
     -- Timestamps
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -151,7 +155,10 @@ CREATE TABLE system_settings (
     id SERIAL PRIMARY KEY,
     setting_key VARCHAR(100) UNIQUE NOT NULL,
     setting_value TEXT NOT NULL,
+    setting_type VARCHAR(20) DEFAULT 'string',
+    category VARCHAR(50) DEFAULT 'general',
     description TEXT,
+    updated_by INTEGER REFERENCES employees(id) ON DELETE SET NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -212,15 +219,17 @@ INSERT INTO roles (name, description) VALUES
 ('employee', 'Regular employee with basic access');
 
 -- Insert system settings
-INSERT INTO system_settings (setting_key, setting_value, description) VALUES
-('check_in_start_time', '09:00', 'Official check-in start time'),
-('check_in_end_time', '09:30', 'Official check-in end time (after this is late)'),
-('late_threshold_minutes', '30', 'Minutes after start time to mark as late'),
-('half_day_hours', '4', 'Minimum hours for half-day'),
-('full_day_hours', '8', 'Minimum hours for full-day'),
-('annual_paid_leaves', '7', 'Number of annual paid leaves per employee'),
-('company_name', 'Your Company Name', 'Company name for display'),
-('company_email', 'hr@company.com', 'Company HR email');
+INSERT INTO system_settings (setting_key, setting_value, setting_type, category, description) VALUES
+('check_in_start_time', '09:00', 'time', 'attendance', 'Official check-in start time'),
+('check_in_end_time', '09:30', 'time', 'attendance', 'Official check-in end time (after this is late)'),
+('late_threshold_minutes', '30', 'number', 'attendance', 'Minutes after start time to mark as late'),
+('half_day_hours', '4', 'number', 'attendance', 'Minimum hours for half-day'),
+('full_day_hours', '8', 'number', 'attendance', 'Minimum hours for full-day'),
+('annual_paid_leaves', '7', 'number', 'leave', 'Number of annual paid leaves per employee'),
+('company_name', 'Your Company Name', 'string', 'general', 'Company name for display'),
+('company_email', 'hr@company.com', 'string', 'general', 'Company HR email'),
+('ENABLE_FACE_VERIFICATION', 'false', 'boolean', 'security', 'Require face verification before check-in'),
+('FACE_MATCH_THRESHOLD', '50', 'number', 'security', 'Face match sensitivity (lower = stricter, range 30-70)');
 
 -- ================================================
 -- VIEWS FOR REPORTING

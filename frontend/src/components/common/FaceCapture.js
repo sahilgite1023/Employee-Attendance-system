@@ -4,31 +4,60 @@ import { useEffect, useRef, useState } from 'react';
 
 // ─── face-api is browser-only, loaded dynamically ───────────────────────────
 let faceapi = null;
-let modelsLoaded = false;
-let modelsLoading = false;
+let faceapiPromise = null;
 
 async function loadModels() {
-  if (modelsLoaded) return;
-  if (modelsLoading) {
-    // Wait for the in-progress load
-    while (modelsLoading) {
-      await new Promise((r) => setTimeout(r, 100));
-    }
-    return;
+  if (
+    faceapi &&
+    faceapi.nets?.tinyFaceDetector?.isLoaded &&
+    faceapi.nets?.faceLandmark68Net?.isLoaded &&
+    faceapi.nets?.faceRecognitionNet?.isLoaded
+  ) {
+    return faceapi;
   }
-  modelsLoading = true;
-  try {
-    faceapi = await import('@vladmandic/face-api');
-    const MODEL_URL = '/models';
-    await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-    ]);
-    modelsLoaded = true;
-  } finally {
-    modelsLoading = false;
+
+  if (!faceapiPromise) {
+    faceapiPromise = (async () => {
+      const mod = await import('@vladmandic/face-api');
+      const api = mod.nets ? mod : (mod.default || mod);
+      faceapi = api;
+
+      // Initialize WebGL/CPU backend before inference to bypass missing wasm binary
+      try {
+        if (api.tf) {
+          try {
+            await api.tf.setBackend('webgl');
+          } catch {
+            await api.tf.setBackend('cpu');
+          }
+          await api.tf.ready();
+        }
+      } catch (backendErr) {
+        console.warn('[FaceCapture] Backend init warning:', backendErr);
+      }
+
+      const MODEL_URL = '/models';
+      console.log('[FaceCapture] Loading face-api models from', MODEL_URL);
+
+      await Promise.all([
+        api.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        api.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        api.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+      ]);
+
+      if (!api.nets.tinyFaceDetector.isLoaded) {
+        throw new Error('TinyFaceDetector model failed to load from /models');
+      }
+
+      console.log('[FaceCapture] Face models loaded successfully');
+      return api;
+    })().catch((err) => {
+      faceapiPromise = null; // allow retry on failure
+      throw err;
+    });
   }
+
+  return faceapiPromise;
 }
 
 /**
@@ -72,18 +101,23 @@ export default function FaceCapture({
   // ── Stop camera and detection loop ────────────────────────────────────────
   function stopCamera() {
     if (detectionLoopRef.current) {
-      clearInterval(detectionLoopRef.current);
+      clearTimeout(detectionLoopRef.current);
       detectionLoopRef.current = null;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
   }
 
   // ── Initialise: load models, open camera, start detection ─────────────────
   useEffect(() => {
     let cancelled = false;
+    let isProcessing = false;
     samplesRef.current = [];
     doneRef.current = false;
 
@@ -107,7 +141,11 @@ export default function FaceCapture({
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          await videoRef.current.play();
+          try {
+            await videoRef.current.play();
+          } catch {
+            // Autoplay may resolve asynchronously on user action
+          }
         }
 
         setStatus('detecting');
@@ -117,81 +155,115 @@ export default function FaceCapture({
             : 'Look at the camera to verify your identity.'
         );
 
-        // Start detection loop
-        detectionLoopRef.current = setInterval(async () => {
-          if (doneRef.current) return;
+        // Start sequential, non-overlapping detection loop
+        const runDetection = async () => {
+          if (doneRef.current || cancelled) return;
           const video = videoRef.current;
-          if (!video || video.readyState < 2 || !faceapi) return;
 
-          try {
-            const detection = await faceapi
-              .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5 }))
-              .withFaceLandmarks()
-              .withFaceDescriptor();
+          if (
+            video &&
+            video.readyState >= 2 &&
+            video.videoWidth > 0 &&
+            faceapi?.nets?.tinyFaceDetector?.isLoaded &&
+            !isProcessing
+          ) {
+            isProcessing = true;
+            try {
+              const detection = await faceapi
+                .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5 }))
+                .withFaceLandmarks()
+                .withFaceDescriptor();
 
-            if (!detection) {
-              setFaceDetected(false);
-              setStatusText('No face detected. Position your face in the frame.');
-              // Clear canvas
-              const canvas = canvasRef.current;
-              if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-              return;
-            }
+              if (doneRef.current || cancelled) return;
 
-            setFaceDetected(true);
-
-            // Draw detection overlay
-            const canvas = canvasRef.current;
-            if (canvas && video) {
-              const dims = faceapi.matchDimensions(canvas, video, true);
-              canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-              const resized = faceapi.resizeResults(detection, dims);
-              faceapi.draw.drawDetections(canvas, resized);
-            }
-
-            if (mode === 'verify') {
-              // Single capture for verification
-              doneRef.current = true;
-              setStatus('done');
-              setStatusText('Face captured!');
-              stopCamera();
-              onCaptureRef.current?.(Array.from(detection.descriptor));
-            } else {
-              // Enrollment: collect multiple samples
-              samplesRef.current.push(Array.from(detection.descriptor));
-              const count = samplesRef.current.length;
-              setSampleCount(count);
-              setCaptureProgress(Math.round((count / enrollSamples) * 100));
-              setStatusText(`Capturing… ${count}/${enrollSamples} samples`);
-
-              if (count >= enrollSamples) {
-                doneRef.current = true;
-                setStatus('done');
-                setStatusText('Enrollment complete!');
-                stopCamera();
-
-                // Average the descriptors for a more robust enrollment
-                const avg = new Array(128).fill(0);
-                for (const d of samplesRef.current) {
-                  for (let i = 0; i < 128; i++) avg[i] += d[i];
+              if (!detection) {
+                setFaceDetected(false);
+                setStatusText('No face detected. Position your face in the frame.');
+                const canvas = canvasRef.current;
+                if (canvas) {
+                  const ctx = canvas.getContext('2d');
+                  if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
                 }
-                for (let i = 0; i < 128; i++) avg[i] /= samplesRef.current.length;
-                onCaptureRef.current?.(avg);
+              } else {
+                setFaceDetected(true);
+
+                // Draw detection overlay matching displayed size
+                const canvas = canvasRef.current;
+                if (canvas && video) {
+                  const displaySize = {
+                    width: video.offsetWidth || 320,
+                    height: video.offsetHeight || 240,
+                  };
+                  faceapi.matchDimensions(canvas, displaySize);
+                  const resized = faceapi.resizeResults(detection, displaySize);
+                  faceapi.draw.drawDetections(canvas, resized);
+                }
+
+                if (mode === 'verify') {
+                  // Single capture for verification
+                  doneRef.current = true;
+                  setStatus('done');
+                  setStatusText('Face captured!');
+                  stopCamera();
+                  onCaptureRef.current?.(Array.from(detection.descriptor));
+                  return;
+                } else {
+                  // Enrollment: collect multiple samples
+                  samplesRef.current.push(Array.from(detection.descriptor));
+                  const count = samplesRef.current.length;
+                  setSampleCount(count);
+                  setCaptureProgress(Math.round((count / enrollSamples) * 100));
+                  setStatusText(`Capturing… ${count}/${enrollSamples} samples`);
+
+                  if (count >= enrollSamples) {
+                    doneRef.current = true;
+                    setStatus('done');
+                    setStatusText('Enrollment complete!');
+                    stopCamera();
+
+                    // Average and normalize the descriptors
+                    const avg = new Array(128).fill(0);
+                    for (const d of samplesRef.current) {
+                      for (let i = 0; i < 128; i++) avg[i] += d[i];
+                    }
+                    let sumSq = 0;
+                    for (let i = 0; i < 128; i++) {
+                      avg[i] /= samplesRef.current.length;
+                      sumSq += avg[i] * avg[i];
+                    }
+                    const norm = Math.sqrt(sumSq) || 1;
+                    for (let i = 0; i < 128; i++) {
+                      avg[i] /= norm;
+                    }
+                    onCaptureRef.current?.(avg);
+                    return;
+                  }
+                }
               }
+            } catch (frameErr) {
+              console.warn('[FaceCapture] Frame processing error:', frameErr);
+            } finally {
+              isProcessing = false;
             }
-          } catch {
-            // Silently ignore per-frame errors
           }
-        }, 300);
+
+          if (!doneRef.current && !cancelled) {
+            detectionLoopRef.current = setTimeout(runDetection, 180);
+          }
+        };
+
+        detectionLoopRef.current = setTimeout(runDetection, 200);
       } catch (err) {
         if (cancelled) return;
         console.error('[FaceCapture] init error:', err);
         setStatus('error');
         const msg =
-          err.name === 'NotAllowedError'
+          err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
             ? 'Camera access denied. Please allow camera access in your browser settings.'
-            : err.name === 'NotFoundError'
+            : err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError'
             ? 'No camera found. Please connect a camera and try again.'
+            : (err.message && err.message.includes('fetch'))
+            ? 'Failed to load face detection models. Please refresh and check your network.'
             : 'Failed to start camera. Please try again.';
         setStatusText(msg);
         onErrorRef.current?.(msg);
@@ -229,7 +301,7 @@ export default function FaceCapture({
         />
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0 pointer-events-none"
           style={{ transform: 'scaleX(-1)' }}
         />
 

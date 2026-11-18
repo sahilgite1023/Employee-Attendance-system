@@ -1,6 +1,7 @@
 const db = require('../config/database');
 const { sendSuccess, sendError } = require('../utils/response');
 const { createAuditLog } = require('../middleware/auditLog');
+const { getSetting } = require('../utils/settingsCache');
 
 // ─── Euclidean distance between two 128-float descriptors ───────────────────
 function euclideanDistance(a, b) {
@@ -62,6 +63,10 @@ exports.adminEnrollFace = async (req, res, next) => {
     const { descriptor } = req.body;
     const targetId = parseInt(req.params.id, 10);
 
+    if (isNaN(targetId)) {
+      return sendError(res, 'Invalid employee ID', 400);
+    }
+
     if (!isValidDescriptor(descriptor)) {
       return sendError(res, 'Invalid face descriptor. Please try again.', 400);
     }
@@ -115,6 +120,10 @@ exports.adminRemoveFace = async (req, res, next) => {
   try {
     const targetId = parseInt(req.params.id, 10);
 
+    if (isNaN(targetId)) {
+      return sendError(res, 'Invalid employee ID', 400);
+    }
+
     await db.query(
       `UPDATE employees SET face_descriptor = NULL, face_enrolled_at = NULL WHERE id = $1`,
       [targetId]
@@ -141,22 +150,12 @@ exports.getFaceStatus = async (req, res, next) => {
     );
 
     const enrolled = !!result.rows[0]?.face_enrolled_at;
-
-    // Also check if the feature is enabled (from system_settings)
-    let featureEnabled = false;
-    try {
-      const settingResult = await db.query(
-        "SELECT setting_value FROM system_settings WHERE setting_key = 'ENABLE_FACE_VERIFICATION'"
-      );
-      featureEnabled = settingResult.rows[0]?.setting_value === 'true';
-    } catch {
-      // If setting doesn't exist, feature is disabled
-    }
+    const featureEnabled = await getSetting('ENABLE_FACE_VERIFICATION', false);
 
     sendSuccess(res, 'Face status retrieved', {
       enrolled,
       enrolledAt: result.rows[0]?.face_enrolled_at || null,
-      featureEnabled,
+      featureEnabled: Boolean(featureEnabled),
     });
   } catch (error) {
     next(error);

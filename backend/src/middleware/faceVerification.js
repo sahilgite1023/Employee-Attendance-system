@@ -50,15 +50,32 @@ const faceVerification = async (req, res, next) => {
       });
     }
 
-    // Parse stored descriptor (stored as JSONB, comes back as array already)
-    const stored = Array.isArray(employee.face_descriptor)
-      ? employee.face_descriptor
-      : JSON.parse(employee.face_descriptor);
+    // Parse stored descriptor (stored as JSONB, comes back as array or JSON string)
+    let stored = employee.face_descriptor;
+    if (typeof stored === 'string') {
+      try {
+        stored = JSON.parse(stored);
+      } catch {
+        stored = null;
+      }
+    }
 
-    // Get threshold from settings (default 0.5)
-    const threshold = await getSetting('FACE_MATCH_THRESHOLD', 50);
-    // threshold is stored as integer (e.g. 50 = 0.50) to fit the 'number' type
-    const normalizedThreshold = threshold > 1 ? threshold / 100 : threshold;
+    if (!isValidDescriptor(stored)) {
+      return res.status(412).json({
+        success: false,
+        message: 'Your enrolled face data is invalid or corrupted. Please re-enroll your face from your Profile page.',
+        code: 'FACE_NOT_ENROLLED',
+      });
+    }
+
+    // Get threshold from settings (default 50 = 0.50)
+    const thresholdSetting = await getSetting('FACE_MATCH_THRESHOLD', 50);
+    const numericThreshold =
+      typeof thresholdSetting === 'number'
+        ? thresholdSetting
+        : parseFloat(thresholdSetting) || 50;
+    const normalizedThreshold =
+      numericThreshold > 1 ? numericThreshold / 100 : numericThreshold;
 
     const distance = euclideanDistance(stored, faceDescriptor);
 
